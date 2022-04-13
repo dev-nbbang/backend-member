@@ -1,5 +1,4 @@
 package com.dev.nbbang.member.domain.user.service;
-
 import com.dev.nbbang.member.domain.user.api.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.SocialOauth;
 import com.dev.nbbang.member.domain.user.entity.Member;
@@ -22,10 +21,8 @@ public class MemberService {
     private final List<SocialOauth> socialOauthList;
     private final HttpServletResponse response;
 
-    @Autowired
-    public MemberRepository memberRepository;
-    @Autowired
-    public OTTViewRepository ottViewRepository;
+    private final MemberRepository memberRepository;
+    private final OTTViewRepository ottViewRepository;
 
     public void request(SocialLoginType socialLoginType) {
         SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
@@ -72,5 +69,4 @@ public class MemberService {
     public OTTView findByOttId(int ottId) {
         return ottViewRepository.findByOttId(ottId);
     }
-
 }

@@ -1,7 +1,6 @@
 package com.dev.nbbang.member.domain.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,8 +15,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "MEMBER")
 public class Member implements UserDetails {
@@ -40,6 +37,19 @@ public class Member implements UserDetails {
     private String billingKey;
     @Column(name = "party_invite_yn", nullable = false)
     private char partyInviteYn;
+
+    @Builder
+    public Member(String memberId, String nickname, int bankId, String bankAccount, String grade, int point, int exp, String billingKey, char partyInviteYn) {
+        this.memberId = memberId;
+        this.nickname = nickname;
+        this.bankId = bankId;
+        this.bankAccount = bankAccount;
+        this.grade = grade;
+        this.point = point;
+        this.exp = exp;
+        this.billingKey = billingKey;
+        this.partyInviteYn = partyInviteYn;
+    }
 
     @ManyToMany
     @JoinTable(name="MEMBER_OTT",
