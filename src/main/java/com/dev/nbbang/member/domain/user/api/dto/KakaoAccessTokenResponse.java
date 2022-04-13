@@ -1,4 +1,4 @@
-package com.dev.nbbang.member.domain.user.api;
+package com.dev.nbbang.member.domain.user.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

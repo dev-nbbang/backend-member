@@ -1,7 +1,6 @@
-package com.dev.nbbang.member.domain.user.util;
+package com.dev.nbbang.member.domain.user.api.util;
 
-import com.dev.nbbang.member.domain.user.entity.SocialLoginType;
-import org.springframework.stereotype.Component;
+import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 
 public class SocialLoginIdUtil {
     private SocialLoginType socialLoginType;

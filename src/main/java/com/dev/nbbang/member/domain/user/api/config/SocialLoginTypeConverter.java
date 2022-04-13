@@ -1,6 +1,6 @@
-package com.dev.nbbang.member.domain.user.config;
+package com.dev.nbbang.member.domain.user.api.config;
 
-import com.dev.nbbang.member.domain.user.entity.SocialLoginType;
+import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 

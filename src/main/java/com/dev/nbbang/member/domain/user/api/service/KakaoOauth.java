@@ -1,7 +1,8 @@
-package com.dev.nbbang.member.domain.user.api;
+package com.dev.nbbang.member.domain.user.api.service;
 
+import com.dev.nbbang.member.domain.user.api.dto.KaKaoUserInfoResponse;
+import com.dev.nbbang.member.domain.user.api.dto.KakaoAccessTokenResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -86,7 +87,7 @@ public class KakaoOauth implements SocialOauth {
 
     // 2. 카카오 서버에서 회원 정보 불러오기
     @Override
-    public KaKaoUserInfoResponse requestKakaoUserInfo(String code) {
+    public String requestUserInfo(String code) {
         String accessToken = requestAccessToken(code);
 
         // Http Header
@@ -100,8 +101,8 @@ public class KakaoOauth implements SocialOauth {
             ResponseEntity<String> kakaoResponse = restTemplate.postForEntity(userInfoUri, kakaoRequestEntity, String.class);
 
             if (kakaoResponse.getStatusCode() == HttpStatus.OK) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                return objectMapper.readValue(kakaoResponse.getBody(), KaKaoUserInfoResponse.class);
+
+                return kakaoResponse.getBody();
             }
         } catch (Exception e) {
             // 커스텀 예외 던지기

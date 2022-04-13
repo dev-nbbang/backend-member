@@ -1,4 +1,7 @@
-package com.dev.nbbang.member.domain.user.api;
+package com.dev.nbbang.member.domain.user.api.service;
+import com.dev.nbbang.member.domain.user.api.dto.KaKaoUserInfoResponse;
+import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
+
 import java.util.Map;
 
 public interface SocialOauth {
@@ -6,9 +9,7 @@ public interface SocialOauth {
 
     String requestAccessToken(String code);
 
-    String requestUserInfo(Map<String, String> map);
-
-    KaKaoUserInfoResponse requestKakaoUserInfo(String code);
+    String requestUserInfo(String code);
 
     default SocialLoginType type() {
         if(this instanceof GoogleOauth) {

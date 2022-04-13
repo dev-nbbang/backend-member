@@ -3,6 +3,7 @@ package com.dev.nbbang.member.global.config;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import io.jsonwebtoken.ExpiredJwtException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -15,15 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private final JwtUtil jwtUtil;
-    private RedisUtil redisUtil;
-
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, RedisUtil redisUtil) {
-        this.jwtUtil = jwtUtil;
-        this.redisUtil = redisUtil;
-    }
+    private final RedisUtil redisUtil;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

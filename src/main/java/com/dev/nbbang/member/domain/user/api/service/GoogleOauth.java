@@ -1,4 +1,4 @@
-package com.dev.nbbang.member.domain.user.api;
+package com.dev.nbbang.member.domain.user.api.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -2,6 +2,7 @@ package com.dev.nbbang.member.global.config;
 
 import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +16,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired
-    private JwtUtil jwtUtil;
 
-    @Autowired
-    private RedisUtil redisUtil;
+    private final JwtUtil jwtUtil;
+    private final RedisUtil redisUtil;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

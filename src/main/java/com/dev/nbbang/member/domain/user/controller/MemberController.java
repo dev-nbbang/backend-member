@@ -1,11 +1,11 @@
 package com.dev.nbbang.member.domain.user.controller;
 
-import com.dev.nbbang.member.domain.user.api.SocialLoginType;
+import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.dto.request.MemberReq;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.domain.user.util.KakaoAuthUrl;
+import com.dev.nbbang.member.domain.user.api.util.KakaoAuthUrl;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +33,14 @@ public class MemberController {
     private final RedisUtil redisUtil;
     private final KakaoAuthUrl kakaoAuthUrl;
 
+    // redirect
     @GetMapping(value = "/{socialLoginType}")
     public void socialLoginType(@PathVariable(name = "socialLoginType")SocialLoginType socialLoginType) {
         log.info(">> 사용자로부터 SNS 로그인 요청을 받음 :: {} Social Login", socialLoginType);
         memberService.request(socialLoginType);
     }
 
+    // callback
     @GetMapping(value = "/{socialLoginType}/callback")
     public Object callback(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
                            @RequestParam(name="code") String code, HttpServletResponse res) {
@@ -94,6 +96,7 @@ public class MemberController {
         return new ResponseEntity(result, HttpStatus.OK);
     }
 
+    //
     @GetMapping(value="/kakao/authorization")
     @Operation(description = "카카오 소셜 로그인 인가 코드 요청 URL을 생성한다.")
     public ResponseEntity<?> makeKakaoAuthUrl() {
@@ -123,7 +126,7 @@ public class MemberController {
 
     @GetMapping(value = "/{socialLoginType}/callback")
     @Operation(description = "카카오 소셜 로그인 인가 코드 요청 성공 시 인가 코드를 전달해 엑세스 토큰 발급을 요청한다.")
-    public String kakaoSocialLogin(@PathVariable com.dev.nbbang.member.domain.user.entity.SocialLoginType socialLoginType,
+    public String kakaoSocialLogin(@PathVariable SocialLoginType socialLoginType,
                                    @RequestParam(name = "code") String code) {
         try {
             memberService.kakaoLogin(socialLoginType, code);
