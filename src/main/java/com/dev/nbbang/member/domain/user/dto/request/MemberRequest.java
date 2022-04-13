@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberReq {
+public class MemberRequest {
     private String memberId;
     private String nickname;
     private String billingKey;

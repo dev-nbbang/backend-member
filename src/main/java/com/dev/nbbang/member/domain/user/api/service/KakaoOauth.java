@@ -1,7 +1,5 @@
 package com.dev.nbbang.member.domain.user.api.service;
 
-import com.dev.nbbang.member.domain.user.api.dto.KaKaoUserInfoResponse;
-import com.dev.nbbang.member.domain.user.api.dto.KakaoAccessTokenResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,14 +9,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * @Author Zayson
- * KakaoOauth Flow
- * 1. 인가 코드를 이용해 AccessToken 발급 요청 및 토큰 파싱 - requestAccessToken
- * 2. 파싱한 토큰을 이용해 카카오 사용자 정보 요청 - requestKakaoUserInfo
- * @return KakaoUserInfoResponse
- */
-
+import java.io.IOException;
+import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class KakaoOauth implements SocialOauth {
@@ -39,13 +31,6 @@ public class KakaoOauth implements SocialOauth {
 
     @Value("${sns.kakao.user-info-uri}")
     private String userInfoUri;
-
-    @Override
-    public String getOauthRedirectURL() {
-
-
-        return null;
-    }
 
     // 1. 카카오 서버에서 접근 가능한 엑세스 토큰 발급받기
     @Override
@@ -72,11 +57,12 @@ public class KakaoOauth implements SocialOauth {
             if (kakaoResponse.getStatusCode() == HttpStatus.OK) {
                 // JSon Response 파싱
                 ObjectMapper objectMapper = new ObjectMapper();
-                KakaoAccessTokenResponse kakaoAccessTokenResponse = objectMapper.readValue(kakaoResponse.getBody(), KakaoAccessTokenResponse.class);
 
-                return kakaoAccessTokenResponse.getAccessToken();
+                Map<String, String> tokenResponse = objectMapper.readValue(kakaoResponse.getBody(), Map.class);
+
+                return tokenResponse.get("access_token");
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             // 커스텀 예외 처리
             return null;
         }
@@ -101,10 +87,11 @@ public class KakaoOauth implements SocialOauth {
             ResponseEntity<String> kakaoResponse = restTemplate.postForEntity(userInfoUri, kakaoRequestEntity, String.class);
 
             if (kakaoResponse.getStatusCode() == HttpStatus.OK) {
-
-                return kakaoResponse.getBody();
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> kakaoUser = objectMapper.readValue(kakaoResponse.getBody(), Map.class);
+                return kakaoUser.get("id").toString();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             // 커스텀 예외 던지기
             return null;
         }

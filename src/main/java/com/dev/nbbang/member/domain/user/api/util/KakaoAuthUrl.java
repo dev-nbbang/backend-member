@@ -6,13 +6,14 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-public class KakaoAuthUrl {
+public class KakaoAuthUrl implements SocialAuthUrl {
     @Value("${sns.kakao.redirect-uri}")
     private String redirectUri;
 
     @Value("${sns.kakao.client-id}")
     private String clientId;
 
+    @Override
     public String makeAuthorizationUrl() {
         System.out.println("clientId = " + clientId);
         System.out.println("redirectUri = " + redirectUri);
