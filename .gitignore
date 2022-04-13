@@ -38,3 +38,6 @@ out
 gen
 build
 rebel.xml
+
+# properties
+.properties
