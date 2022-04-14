@@ -15,6 +15,6 @@ import java.util.List;
 public class MemberRequest {
     private String memberId;
     private String nickname;
-    private String billingKey;
     private List<Integer> ottId;
+    private String recommendMember;
 }

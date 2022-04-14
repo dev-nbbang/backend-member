@@ -5,8 +5,10 @@ import com.dev.nbbang.member.domain.user.api.util.SocialAuthUrl;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRequest;
 import com.dev.nbbang.member.domain.user.dto.response.MemberResponse;
+import com.dev.nbbang.member.domain.user.dto.response.NicknameMemberResponse;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
@@ -54,29 +56,34 @@ public class MemberController {
                                       @RequestParam(name = "code") String code, HttpServletResponse res) {
         log.info(">> 소셜 로그인 API 서버로부터 받은 code :: {}", code);
         Map<String, Object> result = new HashMap<>();
+        // 소셜 로그인 실패시
         String memberId = memberService.socialLogin(socialLoginType, code);
         if (memberId == null) {
             log.info("badRequest");
             // Message 넘기기
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<MemberResponse> member = Optional.ofNullable(memberService.findMember(memberId));
-        if (member.isPresent()) {
-            String accessToken = jwtUtil.generateAccessToken(member.get().getMemberId(), member.get().getNickname());
-            String refreshToken = jwtUtil.generateRefreshToken(member.get().getMemberId(), member.get().getNickname());
+        try {
+            MemberResponse member = memberService.findMember(memberId);
+
+            String accessToken = jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
+            String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
 
             res.setHeader("Authorization", "Bearer " + accessToken);
-            redisUtil.setData(member.get().getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
-            result.put("member_id", member.get().getMemberId());
-            result.put("nickname", member.get().getNickname());
-            result.put("grade", member.get().getGrade());
-            result.put("point", member.get().getPoint());
+            redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
+
+            result.put("memberId", member.getMemberId());
+            result.put("nickname", member.getNickname());
+            result.put("grade", member.getGrade());
+            result.put("point", member.getPoint());
 
             return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (NoSuchMemberException e){
+            log.info(e.getMessage());
+            log.info("회원가입필요");
+            result.put("memberId", memberId);
+            result.put("isSignUp", false);
         }
-        log.info("회원가입필요");
-        result.put("member_id", memberId);
-        result.put("isSignUp", false);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -86,26 +93,25 @@ public class MemberController {
     public Object signUp(@RequestBody MemberRequest memberRequest, HttpServletResponse res) {
         Map<String, Object> result = new HashMap<>();
         List<OTTView> ottViewList = new ArrayList<>();
+        // 관심 OTT 저장하기 (Ott 없는 경우 있음)
         for (int ottId : memberRequest.getOttId()) {
             ottViewList.add(memberService.findByOttId(ottId));
         }
+
+        // 요청 데이터 엔티티에 저장
         Member member = memberService.memberSave(
                 Member.builder().memberId(memberRequest.getMemberId())
                         .nickname(memberRequest.getNickname())
-                        .bankId(1)
-                        .grade("이등병")
-                        .point(0)
-                        .exp(0)
-                        .billingKey(memberRequest.getBillingKey())
-                        .partyInviteYn('Y')
+                        .ottView(ottViewList)
                         .build());
 
+        // 회원 생성이 완료된 경우
         String accessToken = jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
         String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
 
         res.setHeader("Authorization", "Bearer " + accessToken);
         redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
-        result.put("member_id", member.getMemberId());
+        result.put("memberId", member.getMemberId());
         result.put("nickname", member.getNickname());
         result.put("grade", member.getGrade());
         result.put("point", member.getPoint());
@@ -121,5 +127,26 @@ public class MemberController {
 
         System.out.println("authUrl = " + authUrl);
         httpServletResponse.sendRedirect(authUrl);
+    }
+
+    @GetMapping(value = "/{nickname}/recommend")
+    @Operation(description = "닉네임으로 추천인 회원 조회하기")
+    public ResponseEntity<Map<String,Object>> findRecommendMember(@PathVariable(name = "nickname") String nickname) {
+        log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
+        Map<String, Object> result = new HashMap<>();
+        try {
+            NicknameMemberResponse member = memberService.findMemberByNickname(nickname);
+            result.put("memberId", member.getMemberId());
+            result.put("nickname", member.getNickname());
+            result.put("status", true);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch(NoSuchMemberException e) {
+            log.info(e.getMessage());
+            result.put("message", e.getMessage());
+            result.put("status", false);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
     }
 }

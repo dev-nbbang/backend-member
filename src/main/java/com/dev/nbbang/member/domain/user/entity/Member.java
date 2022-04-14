@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.DynamicInsert;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @ToString
+@DynamicInsert
 @Table(name = "MEMBER")
 public class Member implements UserDetails {
     @Id
@@ -27,7 +29,7 @@ public class Member implements UserDetails {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "bank_id", nullable = false)
+    @Column(name = "bank_id")
     private int bankId;
 
     @Column(name = "bank_account")
@@ -48,8 +50,14 @@ public class Member implements UserDetails {
     @Column(name = "party_invite_yn", nullable = false)
     private char partyInviteYn;
 
+    @ManyToMany
+    @JoinTable(name="MEMBER_OTT",
+            joinColumns = @JoinColumn(name="member_id"),
+            inverseJoinColumns = @JoinColumn(name="ott_id"))
+    private List<OTTView> ottView;
+
     @Builder
-    public Member(String memberId, String nickname, int bankId, String bankAccount, String grade, int point, int exp, String billingKey, char partyInviteYn) {
+    public Member(String memberId, String nickname, int bankId, String bankAccount, String grade, long point, long exp, String billingKey, char partyInviteYn, List<OTTView> ottView) {
         this.memberId = memberId;
         this.nickname = nickname;
         this.bankId = bankId;
@@ -59,13 +67,8 @@ public class Member implements UserDetails {
         this.exp = exp;
         this.billingKey = billingKey;
         this.partyInviteYn = partyInviteYn;
+        this.ottView = ottView;
     }
-
-    @ManyToMany
-    @JoinTable(name="MEMBER_OTT",
-        joinColumns = @JoinColumn(name="member_id"),
-        inverseJoinColumns = @JoinColumn(name="ott_id"))
-    private List<OTTView> ottView;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Override
