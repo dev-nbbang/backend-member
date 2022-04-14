@@ -12,7 +12,6 @@ import javax.persistence.Table;
 
 @Entity
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "OTTVIEW")
 public class OTTView {
