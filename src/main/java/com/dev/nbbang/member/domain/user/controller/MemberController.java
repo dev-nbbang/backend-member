@@ -81,7 +81,7 @@ public class MemberController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/new")
     @Operation(description = "추가 회원 가입")
     public Object signUp(@RequestBody MemberRequest memberRequest, HttpServletResponse res) {
         Map<String, Object> result = new HashMap<>();

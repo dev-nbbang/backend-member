@@ -23,20 +23,28 @@ public class Member implements UserDetails {
     @Id
     @Column(name = "member_id", nullable = false)
     private String memberId;
-    @Column(nullable = false)
+
+    @Column(name = "nickname", nullable = false)
     private String nickname;
+
     @Column(name = "bank_id", nullable = false)
     private int bankId;
+
     @Column(name = "bank_account")
     private String bankAccount;
-    @Column(nullable = false)
+
+    @Column(name = "grade", nullable = false)
     private String grade;
-    @Column(nullable = false)
+
+    @Column(name = "point", nullable = false)
     private long point;
-    @Column(nullable = false)
+
+    @Column(name = "exp", nullable = false)
     private long exp;
+
     @Column(name = "billing_key")
     private String billingKey;
+
     @Column(name = "party_invite_yn", nullable = false)
     private char partyInviteYn;
 

@@ -12,7 +12,6 @@ import javax.persistence.Table;
 
 @Entity
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "OTTVIEW")
@@ -24,4 +23,11 @@ public class OTTView {
     private String ottName;
     @Column(name = "ott_image")
     private String ottImage;
+
+    @Builder
+    public OTTView(int ottId, String ottName, String ottImage) {
+        this.ottId = ottId;
+        this.ottName = ottName;
+        this.ottImage = ottImage;
+    }
 }
