@@ -3,15 +3,18 @@ package com.dev.nbbang.member.domain.user.controller;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.util.SocialAuthUrl;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
+import com.dev.nbbang.member.domain.user.dto.MemberDTO;
+import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
+import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRequest;
-import com.dev.nbbang.member.domain.user.dto.response.MemberResponse;
-import com.dev.nbbang.member.domain.user.dto.response.NicknameMemberResponse;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
@@ -28,6 +32,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @RequestMapping(value = "/member")
 @Slf4j
+@Tag(name = "Member", description = "Member API")
 public class MemberController {
     private final MemberService memberService;
     private final JwtUtil jwtUtil;
@@ -35,7 +40,7 @@ public class MemberController {
     private final SocialTypeMatcher socialTypeMatcher;
 
 
-    @GetMapping(value = "/{socialLoginType}")
+    @GetMapping(value = "/auth/{socialLoginType}")
     @Operation(description = "소셜 로그인 인가코드 URL을 생성한다.")
     public Object socialLoginType(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType) {
         log.info(">> 사용자로부터 SNS 로그인 요청을 받음 :: {} Social Login", socialLoginType);
@@ -64,8 +69,10 @@ public class MemberController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try {
-            MemberResponse member = memberService.findMember(memberId);
+            MemberDTO member = memberService.findMember(memberId);
 
+            // response 객체로 만들기
+            // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신
             String accessToken = jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
             String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
 
@@ -78,7 +85,7 @@ public class MemberController {
             result.put("point", member.getPoint());
 
             return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch (NoSuchMemberException e){
+        } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
             log.info("회원가입필요");
             result.put("memberId", memberId);
@@ -98,25 +105,33 @@ public class MemberController {
             ottViewList.add(memberService.findByOttId(ottId));
         }
 
-        // 요청 데이터 엔티티에 저장
-        Member member = memberService.memberSave(
-                Member.builder().memberId(memberRequest.getMemberId())
-                        .nickname(memberRequest.getNickname())
-                        .ottView(ottViewList)
-                        .build());
+        try {
+            // 요청 데이터 엔티티에 저장
+            MemberDTO member = memberService.memberSave(
+                    Member.builder().memberId(memberRequest.getMemberId())
+                            .nickname(memberRequest.getNickname())
+                            .ottView(ottViewList)
+                            .build());
 
-        // 회원 생성이 완료된 경우
-        String accessToken = jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
-        String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
 
-        res.setHeader("Authorization", "Bearer " + accessToken);
-        redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
-        result.put("memberId", member.getMemberId());
-        result.put("nickname", member.getNickname());
-        result.put("grade", member.getGrade());
-        result.put("point", member.getPoint());
+            // 회원 생성이 완료된 경우
+            String accessToken = jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
+            String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
 
-        return new ResponseEntity<>(result, HttpStatus.OK);
+            res.setHeader("Authorization", "Bearer " + accessToken);
+            redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
+            result.put("memberId", member.getMemberId());
+            result.put("nickname", member.getNickname());
+            result.put("grade", member.getGrade());
+            result.put("point", member.getPoint());
+
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
+        } catch (NoCreateMemberException e) {
+            result.put("status", false);
+            result.put("message", e.getMessage());
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
     }
 
     @GetMapping(value = "/{socialLoginType}/test")
@@ -131,17 +146,17 @@ public class MemberController {
 
     @GetMapping(value = "/{nickname}/recommend")
     @Operation(description = "닉네임으로 추천인 회원 조회하기")
-    public ResponseEntity<Map<String,Object>> findRecommendMember(@PathVariable(name = "nickname") String nickname) {
+    public ResponseEntity<Map<String, Object>> findRecommendMember(@PathVariable(name = "nickname") String nickname) {
         log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
         Map<String, Object> result = new HashMap<>();
         try {
-            NicknameMemberResponse member = memberService.findMemberByNickname(nickname);
+            MemberDTO member = memberService.findMemberByNickname(nickname);
             result.put("memberId", member.getMemberId());
             result.put("nickname", member.getNickname());
             result.put("status", true);
 
             return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch(NoSuchMemberException e) {
+        } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
             result.put("message", e.getMessage());
             result.put("status", false);
@@ -149,4 +164,132 @@ public class MemberController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         }
     }
+
+    @GetMapping(value = "/nickname/{nickname}")
+    @Operation(description = "닉네임 중복 확인")
+    public ResponseEntity<?> checkDuplicateNickname(@PathVariable(name = "nickname") String nickname) {
+        log.info(" >> [Nbbang Member Service] 닉네임 중복 확인");
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean nicknameDup = memberService.duplicateNickname(nickname);
+            result.put("nicknameDup", nicknameDup);
+            result.put("status", true);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (NoSuchMemberException e) {
+            log.info(e.getMessage());
+            result.put("message", e.getMessage());
+            result.put("status", false);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping(value = "/grade")
+    @Operation(description = "회원 등급 조회")
+    public ResponseEntity<?> getMemberGrade(HttpServletRequest servletRequest) {
+        log.info(" >>  [Nbbang Member Service] 회원 등급 조회");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            MemberDTO findMember = memberService.findMember(memberId);
+            result.put("memberId", findMember.getMemberId());
+            result.put("grade", findMember.getGrade());
+            result.put("status", true);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (NoSuchMemberException e) {
+            log.info(e.getMessage());
+            result.put("message", e.getMessage());
+            result.put("status", false);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    @PutMapping(value = "/grade")
+    @Operation(description = "회원 등급 수정")
+    public ResponseEntity<?> modifyMemberGrade(@RequestBody MemberGradeRequest request, HttpServletRequest servletRequest) {
+        log.info(" >> [Nbbang Member Service] 회원 등급 수정");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            MemberDTO findMember = memberService.findMember(memberId);
+            MemberDTO updatedMember = memberService.memberSave(Member.builder()
+                    .memberId(findMember.getMemberId())
+                    .grade(request.getGrade().name()).build());
+
+            result.put("memberId", updatedMember.getMemberId());
+            result.put("grade", updatedMember.getGrade());
+            result.put("status", true);
+
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
+        } catch (NoCreateMemberException e) {
+            log.info(e.getMessage());
+            result.put("message", e.getMessage());
+            result.put("status", false);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    @PutMapping(value = "/exp")
+    @Operation(description = "회원 경험치 변동")
+    public ResponseEntity<?> modifyMemberExp(@RequestBody MemberExpRequest request, HttpServletRequest servletRequest) {
+        log.info(" >> [Nbbang Member Service] 회원 경험치 변동");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            MemberDTO findMember = memberService.findMember(memberId);
+            MemberDTO updatedMember = memberService.memberSave(Member.builder()
+                    .memberId(findMember.getMemberId())
+                    .exp(request.getExp()).build());
+
+            result.put("memberId", updatedMember.getMemberId());
+            result.put("exp", updatedMember.getExp());
+            result.put("status", true);
+
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
+        } catch (NoCreateMemberException e) {
+            log.info(e.getMessage());
+            result.put("message", e.getMessage());
+            result.put("status", false);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping(value = "/profile")
+    @Operation(description = "회원 프로필 불러오기")
+    public ResponseEntity<?> getMemberProfile(HttpServletRequest servletRequest) {
+        log.info(" >> [Nbbang Member Service] 회원 프로필 불러오기");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            MemberDTO member = memberService.findMember(memberId);
+            result.put("profile", member);
+            result.put("status", true);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (NoSuchMemberException e) {
+            log.info(e.getMessage());
+            result.put("message", e.getMessage());
+            result.put("status", false);
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+
+    @DeleteMapping(value = "/logout")
+    @Operation(description = "로그아웃")
+    public ResponseEntity<?> logout() {
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
 }

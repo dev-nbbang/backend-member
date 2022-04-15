@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OTTViewRepository extends JpaRepository<OTTView, Integer> {
     OTTView findByOttId(int ottId);
+
 }

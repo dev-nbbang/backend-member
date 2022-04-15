@@ -2,11 +2,11 @@ package com.dev.nbbang.member.domain.user.service;
 
 
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
-import com.dev.nbbang.member.domain.user.dto.response.MemberResponse;
-import com.dev.nbbang.member.domain.user.dto.response.NicknameMemberResponse;
+import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MemberService {
@@ -14,13 +14,19 @@ public interface MemberService {
     String socialLogin(SocialLoginType socialLoginType, String code);
 
     // 아이디로 회원 찾기
-    MemberResponse findMember(String memberId);
+    MemberDTO findMember(String memberId);
 
-    // 중복 닉네임 찾기
-    NicknameMemberResponse findMemberByNickname(String nickname);
+    // 닉네임으로 회원 찾기
+    MemberDTO findMemberByNickname(String nickname);
 
     // 회원 추가 정보 저장
-    Member memberSave(Member member);
+    MemberDTO memberSave(Member member);
+
+    // 닉네임 중복 체크
+    boolean duplicateNickname(String nickname);
+
+    // 비슷한 닉네임 리스트 가져오기
+    List<MemberDTO> findMemberListByNickname(String nickname);
 
     OTTView findByOttId(int ottId);
 

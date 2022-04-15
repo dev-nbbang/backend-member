@@ -1,11 +1,11 @@
 package com.dev.nbbang.member.domain.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +20,9 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 @DynamicInsert
+@DynamicUpdate
+@AllArgsConstructor
+@Builder
 @Table(name = "MEMBER")
 public class Member implements UserDetails {
     @Id
@@ -30,44 +33,38 @@ public class Member implements UserDetails {
     private String nickname;
 
     @Column(name = "bank_id")
-    private int bankId;
+    private Integer bankId;
 
     @Column(name = "bank_account")
     private String bankAccount;
 
-    @Column(name = "grade", nullable = false)
+    @Column(name = "grade")
     private String grade;
 
-    @Column(name = "point", nullable = false)
-    private long point;
+    @Column(name = "point")
+    private Long point;
 
-    @Column(name = "exp", nullable = false)
-    private long exp;
+    @Column(name = "exp")
+    private Long exp;
 
     @Column(name = "billing_key")
     private String billingKey;
 
-    @Column(name = "party_invite_yn", nullable = false)
-    private char partyInviteYn;
+    @Column(name = "party_invite_yn")
+    private String partyInviteYn;
 
     @ManyToMany
-    @JoinTable(name="MEMBER_OTT",
-            joinColumns = @JoinColumn(name="member_id"),
-            inverseJoinColumns = @JoinColumn(name="ott_id"))
+    @JoinTable(name = "MEMBER_OTT",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "ott_id"))
     private List<OTTView> ottView;
 
-    @Builder
-    public Member(String memberId, String nickname, int bankId, String bankAccount, String grade, long point, long exp, String billingKey, char partyInviteYn, List<OTTView> ottView) {
-        this.memberId = memberId;
-        this.nickname = nickname;
-        this.bankId = bankId;
-        this.bankAccount = bankAccount;
-        this.grade = grade;
-        this.point = point;
-        this.exp = exp;
-        this.billingKey = billingKey;
-        this.partyInviteYn = partyInviteYn;
-        this.ottView = ottView;
+    @PrePersist
+    private void prePersist() {
+        if (this.grade == null) grade = Grade.BRONZE.name();
+        if (this.point == null) point = 0L;
+        if (this.exp == null) exp = 0L;
+        if (this.partyInviteYn == null) partyInviteYn = "Y";
     }
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
