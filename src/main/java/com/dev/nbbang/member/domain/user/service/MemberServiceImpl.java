@@ -4,17 +4,17 @@ import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
-import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
-import com.dev.nbbang.member.domain.user.dto.response.MemberResponse;
-import com.dev.nbbang.member.domain.user.dto.response.NicknameMemberResponse;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
+import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.user.repository.OTTViewRepository;
 import com.dev.nbbang.member.domain.user.api.util.SocialLoginIdUtil;
 import com.dev.nbbang.member.global.exception.NbbangException;
+import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +29,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OTTViewRepository ottViewRepository;
     private final SocialTypeMatcher socialTypeMatcher;
+    private final RedisUtil redisUtil;
 
     // 소셜타입마다 각각 다른 소셜 로그인
     public String socialLogin(SocialLoginType socialLoginType, String code) {
@@ -61,7 +62,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberDTO memberSave(Member member) {
         Optional<Member> savedMember = Optional.ofNullable(memberRepository.save(member));
-        return MemberDTO.create(savedMember.orElseThrow(() -> new NoCreateMemberException("회원가입에 실패했습니다.", NbbangException.NO_CREATE_MEMBER)));
+        return MemberDTO.create(savedMember.orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER)));
     }
 
     @Override
@@ -77,7 +78,30 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.createList(findMemberList);
     }
 
-    //
+    @Override
+    public void deleteMember(String memberId) {
+
+        if (memberId.length() < 1)
+            throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+
+        // 레디스 토큰 삭제
+        if (!redisUtil.deleteData(memberId))
+            throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+
+        // 소셜 로그아웃 구현
+
+        // 다른 서비스에 이벤트 발행 후 관련 모든 데이터 지우기 (동일 서비스 cascade로 관련 테이블 모두 지우기)
+        memberRepository.deleteByMemberId(memberId);
+
+    }
+
+    @Override
+    public boolean logout(String memberId) {
+        if (memberId.length() < 1) throw new FailLogoutMemberException("로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
+        // 존재하지 않는 회원까지 이중 체크?
+        return redisUtil.deleteData(memberId);
+    }
+
     public OTTView findByOttId(int ottId) {
         return ottViewRepository.findByOttId(ottId);
     }

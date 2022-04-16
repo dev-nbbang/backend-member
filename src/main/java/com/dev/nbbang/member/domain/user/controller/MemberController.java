@@ -6,9 +6,12 @@ import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
+import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRequest;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
+import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
@@ -284,12 +287,95 @@ public class MemberController {
         }
     }
 
+    @PutMapping("/profile")
+    @Operation(description = "회원 프로필 수정하기")
+    public ResponseEntity<?> modifyMemberProfile(@RequestBody MemberModifyRequest request, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+        log.info(" >> [Nbbang Member Service] 회원 프로필 수정하기");
+        Map<String, Object> result = new HashMap<>();
 
-    @DeleteMapping(value = "/logout")
-    @Operation(description = "로그아웃")
-    public ResponseEntity<?> logout() {
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+
+            List<OTTView> ottViewList = new ArrayList<>();
+            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
+            for (int ottId : request.getOttView()) {
+                // ott 내용 조회 Ott Service단으로 만들기
+                ottViewList.add(memberService.findByOttId(ottId));
+            }
+
+            MemberDTO findMember = memberService.findMember(memberId);
+            MemberDTO updatedMember = memberService.memberSave(Member.builder()
+                    .memberId(findMember.getMemberId())
+                    .nickname(request.getNickname())
+                    .ottView(ottViewList)
+                    .partyInviteYn(request.getPartyInviteYn())
+                    .build());
+
+            // 닉네임이 변경된 경우에만 JWT 토큰 새로 갱신 및 Redis에 리프레시 토큰 저장
+            if (findMember.getNickname().equals(request.getNickname())) {
+                String accessToken = jwtUtil.generateAccessToken(updatedMember.getMemberId(), updatedMember.getNickname());
+                String refreshToken = jwtUtil.generateRefreshToken(updatedMember.getMemberId(), updatedMember.getNickname());
+
+                servletResponse.setHeader("Authorization", "Bearer " + accessToken);
+                redisUtil.setData(updatedMember.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
+            }
+
+            result.put("memberId", updatedMember.getMemberId());
+            result.put("nickname", updatedMember.getNickname());
+            result.put("ottView", updatedMember.getOttViewList());
+            result.put("partyInviteYn", updatedMember.getPartyInviteYn());
+
+            return new ResponseEntity<>(result, HttpStatus.CREATED);
+        } catch (NoCreateMemberException e) {
+            log.info(e.getMessage());
+            result.put("status", false);
+            result.put("message", e.getMessage());
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+
     }
 
 
+    @DeleteMapping(value = "/logout")
+    @Operation(description = "로그아웃")
+    public ResponseEntity<?> logout(HttpServletRequest servletRequest) {
+        log.info(" >> [Nbbang Member Service] 로그아웃");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            boolean logout = memberService.logout(memberId);
+            result.put("status", logout);
+            result.put("message", "로그아웃 되었습니다.");
+
+            return new ResponseEntity<>(result, HttpStatus.NO_CONTENT);
+        } catch (FailLogoutMemberException e){
+            log.info(e.getMessage());
+            result.put("status", false);
+            result.put("message", e.getMessage());
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    @DeleteMapping(value = "/profile")
+    @Operation(description = "회원 탈퇴")
+    public ResponseEntity<?> deleteMember(HttpServletRequest servletRequest) {
+        log.info(" >> [Nbbang Member Service] 회원 탈퇴");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            memberService.deleteMember(memberId);
+
+            return new ResponseEntity<>(result, HttpStatus.NO_CONTENT);
+        } catch(FailDeleteMemberException e) {
+            log.info(e.getMessage());
+            result.put("status", false);
+            result.put("message", e.getMessage());
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
 }

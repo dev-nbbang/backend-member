@@ -3,6 +3,7 @@ package com.dev.nbbang.member.domain.user.repository;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,18 +128,43 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("회원 레포지토리 : 닉네임으로 비슷하 회원 리스트 가져오기 - 성공")
     void 닉네임으로_비슷한_회원_리스트_가져오기_성공() {
-        //given
+        // given
         String nickname = "test";
 
-        //when 
-//        List<Member> top5ByNicknameStartingWith = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseGet();
+        // when
+        List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseGet(ArrayList::new);
 
-
-//        for (Member member : byNicknameStartingWith) {
-//            Member findMember = member.orElseGet(null);
-//            System.out.println("findMember.getNickname() = " + findMember.getNickname());
-//            assertThat(findMember.getNickname()).contains(nickname);
-//        }
+        // then
+        for (Member member : members) {
+            assertThat(member.getNickname()).contains(nickname);
+        }
     }
 
+    @Test
+    @DisplayName("회원 레포지토리 : 닉네임으로 비슷한 회원 리스트 가져오기 - 실패")
+    void 닉네임으로_비슷한_회원_리스트_가져오기_실패() {
+        // given
+        String nickname = "test";
+
+        // when
+        List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseGet(ArrayList::new);
+
+        // then
+        assertThat(members.size()).isEqualTo(0);
+        assertThat(members.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("회원 레포지토리 : 회원 아이디로 회원 삭제하기 - 성공")
+    void 회원_아이디로_회원_삭제하기_성공() {
+        // given
+        String memberId = "1";
+
+        // when
+        memberRepository.deleteByMemberId(memberId);
+        Optional<Member> findMember = memberRepository.findByMemberId(memberId);
+
+        // then
+        assertThat(findMember).isEqualTo(Optional.empty());
+    }
 }

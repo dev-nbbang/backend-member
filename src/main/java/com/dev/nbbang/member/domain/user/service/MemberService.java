@@ -28,6 +28,12 @@ public interface MemberService {
     // 비슷한 닉네임 리스트 가져오기
     List<MemberDTO> findMemberListByNickname(String nickname);
 
+    // 회원 탈퇴
+    void deleteMember(String memberId);
+
+    // 로그 아웃
+    boolean logout(String memberId);
+
     OTTView findByOttId(int ottId);
 
 }
