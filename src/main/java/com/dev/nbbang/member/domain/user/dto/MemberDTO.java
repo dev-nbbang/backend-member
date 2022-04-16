@@ -34,7 +34,6 @@ public class MemberDTO {
     private List<OTTView> ottViewList;
 
     public static MemberDTO create(Member member) {
-
         return MemberDTO.builder().memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .bankId(member.getBankId())

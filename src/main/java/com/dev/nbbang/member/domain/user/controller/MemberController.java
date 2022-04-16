@@ -44,7 +44,7 @@ public class MemberController {
 
 
     @GetMapping(value = "/auth/{socialLoginType}")
-    @Operation(description = "소셜 로그인 인가코드 URL을 생성한다.")
+    @Operation(summary = "소셜 로그인 인가코드 URL", description = "소셜 로그인 인가코드 URL을 생성한다.")
     public Object socialLoginType(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType) {
         log.info(">> 사용자로부터 SNS 로그인 요청을 받음 :: {} Social Login", socialLoginType);
 
@@ -59,7 +59,7 @@ public class MemberController {
     }
 
     @GetMapping(value = "/{socialLoginType}/callback")
-    @Operation(description = "동의 정보 인증 후 리다이렉트 URI")
+    @Operation(summary = "동의 정보 인증 후 리다이렉트", description = "동의 정보 인증 후 리다이렉트 URI")
     public ResponseEntity<?> callback(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
                                       @RequestParam(name = "code") String code, HttpServletResponse res) {
         log.info(">> 소셜 로그인 API 서버로부터 받은 code :: {}", code);
@@ -78,7 +78,7 @@ public class MemberController {
             // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신
             String accessToken = jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
             String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
-
+            System.out.println("accessToken = " + accessToken);
             res.setHeader("Authorization", "Bearer " + accessToken);
             redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
 
@@ -99,7 +99,7 @@ public class MemberController {
     }
 
     @PostMapping("/new")
-    @Operation(description = "추가 회원 가입")
+    @Operation(summary = "추가 회원 가입", description = "추가 회원 가입")
     public Object signUp(@RequestBody MemberRequest memberRequest, HttpServletResponse res) {
         Map<String, Object> result = new HashMap<>();
         List<OTTView> ottViewList = new ArrayList<>();
@@ -123,6 +123,7 @@ public class MemberController {
 
             res.setHeader("Authorization", "Bearer " + accessToken);
             redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
+            log.info("redis 저장 완료");
             result.put("memberId", member.getMemberId());
             result.put("nickname", member.getNickname());
             result.put("grade", member.getGrade());
@@ -138,7 +139,7 @@ public class MemberController {
     }
 
     @GetMapping(value = "/{socialLoginType}/test")
-    @Operation(description = "백엔드 소셜 로그인 인가 코드 요청 테스트")
+    @Operation(summary = "백엔드 소셜 로그인 인가 코드 요청", description = "백엔드 소셜 로그인 인가 코드 요청 테스트")
     public void test(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType, HttpServletResponse httpServletResponse) throws IOException {
         SocialAuthUrl socialAuthUrl = socialTypeMatcher.findSocialAuthUrlByType(socialLoginType);
         String authUrl = socialAuthUrl.makeAuthorizationUrl();
@@ -148,7 +149,7 @@ public class MemberController {
     }
 
     @GetMapping(value = "/{nickname}/recommend")
-    @Operation(description = "닉네임으로 추천인 회원 조회하기")
+    @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
     public ResponseEntity<Map<String, Object>> findRecommendMember(@PathVariable(name = "nickname") String nickname) {
         log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
         Map<String, Object> result = new HashMap<>();
@@ -169,7 +170,7 @@ public class MemberController {
     }
 
     @GetMapping(value = "/nickname/{nickname}")
-    @Operation(description = "닉네임 중복 확인")
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 확인")
     public ResponseEntity<?> checkDuplicateNickname(@PathVariable(name = "nickname") String nickname) {
         log.info(" >> [Nbbang Member Service] 닉네임 중복 확인");
         Map<String, Object> result = new HashMap<>();
@@ -196,6 +197,7 @@ public class MemberController {
 
         try {
             String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            System.out.println("memberId = " + memberId);
             MemberDTO findMember = memberService.findMember(memberId);
             result.put("memberId", findMember.getMemberId());
             result.put("grade", findMember.getGrade());
