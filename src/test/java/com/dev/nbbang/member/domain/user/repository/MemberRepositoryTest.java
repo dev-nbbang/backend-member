@@ -97,7 +97,7 @@ class MemberRepositoryTest {
         assertThat(savedMember.getMemberId()).isEqualTo(member.getMemberId());
         assertThat(savedMember.getNickname()).isEqualTo(member.getNickname());
         assertThat(savedMember.getOttView().size()).isEqualTo(member.getOttView().size());
-        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE.name());
+        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(savedMember.getPoint()).isEqualTo(0);
         assertThat(savedMember.getExp()).isEqualTo(0);
         assertThat(savedMember.getPartyInviteYn()).isEqualTo("Y");
@@ -119,7 +119,7 @@ class MemberRepositoryTest {
         //then
         assertThat(savedMember.getMemberId()).isEqualTo(member.getMemberId());
         assertThat(savedMember.getNickname()).isEqualTo(member.getNickname());
-        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE.name());
+        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(savedMember.getPoint()).isEqualTo(0);
         assertThat(savedMember.getExp()).isEqualTo(0);
         assertThat(savedMember.getPartyInviteYn()).isEqualTo("Y");

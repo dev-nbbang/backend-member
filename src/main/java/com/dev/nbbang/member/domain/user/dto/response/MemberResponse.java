@@ -1,6 +1,7 @@
 package com.dev.nbbang.member.domain.user.dto.response;
 
 
+import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class MemberResponse {
     private String memberId;
     private String nickname;
-    private String grade;
+    private Grade grade;
     private long point;
 
     public static MemberResponse create(Member member) {

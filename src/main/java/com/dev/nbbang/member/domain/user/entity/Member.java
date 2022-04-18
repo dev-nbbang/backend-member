@@ -39,7 +39,8 @@ public class Member implements UserDetails {
     private String bankAccount;
 
     @Column(name = "grade")
-    private String grade;
+    @Enumerated(EnumType.STRING)
+    private Grade grade;
 
     @Column(name = "point")
     private Long point;
@@ -61,7 +62,7 @@ public class Member implements UserDetails {
 
     @PrePersist
     private void prePersist() {
-        if (this.grade == null) grade = Grade.BRONZE.name();
+        if (this.grade == null) grade = Grade.BRONZE;
         if (this.point == null) point = 0L;
         if (this.exp == null) exp = 0L;
         if (this.partyInviteYn == null) partyInviteYn = "Y";

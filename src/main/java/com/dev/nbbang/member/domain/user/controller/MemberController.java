@@ -224,7 +224,7 @@ public class MemberController {
             MemberDTO findMember = memberService.findMember(memberId);
             MemberDTO updatedMember = memberService.memberSave(Member.builder()
                     .memberId(findMember.getMemberId())
-                    .grade(request.getGrade().name()).build());
+                    .grade(request.getGrade()).build());
 
             result.put("memberId", updatedMember.getMemberId());
             result.put("grade", updatedMember.getGrade());

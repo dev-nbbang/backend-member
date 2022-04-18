@@ -217,7 +217,7 @@ class MemberServiceImplTest {
                 .nickname("Test Nickname")
                 .point(0L)
                 .exp(0L)
-                .grade(Grade.BRONZE.name())
+                .grade(Grade.BRONZE)
                 .partyInviteYn("Y").build();
     }
 
@@ -229,7 +229,7 @@ class MemberServiceImplTest {
                     .nickname("Test Nickname" + test)
                     .point(0L)
                     .exp(0L)
-                    .grade(Grade.BRONZE.name())
+                    .grade(Grade.BRONZE)
                     .partyInviteYn("Y").build();
             members.add(member);
         }
