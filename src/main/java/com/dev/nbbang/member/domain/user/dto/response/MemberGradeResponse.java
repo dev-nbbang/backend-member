@@ -1,8 +1,7 @@
 package com.dev.nbbang.member.domain.user.dto.response;
 
-
+import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Grade;
-import com.dev.nbbang.member.domain.user.entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,16 +11,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MemberResponse {
+public class MemberGradeResponse {
     private String memberId;
-    private String nickname;
     private Grade grade;
-    private long point;
+    private boolean status;
 
-    public static MemberResponse create(Member member) {
-        return MemberResponse.builder().memberId(member.getMemberId())
-                .nickname(member.getNickname())
+    public static MemberGradeResponse create(MemberDTO member, boolean status) {
+        return MemberGradeResponse.builder()
+                .memberId(member.getMemberId())
                 .grade(member.getGrade())
-                .point(member.getPoint()).build();
+                .status(status).build();
     }
 }

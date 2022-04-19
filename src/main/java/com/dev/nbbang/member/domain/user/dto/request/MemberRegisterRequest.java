@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberRequest {
+public class MemberRegisterRequest {
     private String memberId;
     private String nickname;
     private List<Integer> ottId;

@@ -1,21 +1,15 @@
 package com.dev.nbbang.member.domain.user.dto;
 
-import com.dev.nbbang.member.domain.user.dto.response.MemberResponse;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
-import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
-import com.dev.nbbang.member.global.exception.NbbangException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Builder
 @NoArgsConstructor
