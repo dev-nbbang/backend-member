@@ -59,7 +59,9 @@ public class JwtUtil {
 
         try {
             userid = extractAllClaims(token).get("userid", String.class);
+            System.out.println("TRACKING MESSAGE USERID : " + userid);
         } catch (ExpiredJwtException e) {
+            System.out.println("TRACKING MESSAGE : "+e.getMessage());
             userid = e.getClaims().get("userid", String.class);
         }
 

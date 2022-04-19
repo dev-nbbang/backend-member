@@ -12,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class MemberModifyRequest { ;
     private String nickname;
-    private List<Integer> ottView;
+    private List<Integer> ottId;
     private String partyInviteYn;
 }

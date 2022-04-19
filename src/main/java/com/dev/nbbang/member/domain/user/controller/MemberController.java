@@ -33,7 +33,7 @@ import java.util.*;
 @RestController
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping(value = "/member")
+@RequestMapping(value = "/members")
 @Slf4j
 @Tag(name = "Member", description = "Member API")
 public class MemberController {
@@ -43,7 +43,7 @@ public class MemberController {
     private final SocialTypeMatcher socialTypeMatcher;
 
 
-    @GetMapping(value = "/auth/{socialLoginType}")
+    @GetMapping(value = "/oauth/{socialLoginType}")
     @Operation(summary = "소셜 로그인 인가코드 URL", description = "소셜 로그인 인가코드 URL을 생성한다.")
     public Object socialLoginType(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType) {
         log.info(">> 사용자로부터 SNS 로그인 요청을 받음 :: {} Social Login", socialLoginType);
@@ -58,7 +58,7 @@ public class MemberController {
         return new ResponseEntity<>(resultMap, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{socialLoginType}/callback")
+    @GetMapping(value = "/oauth/{socialLoginType}/callback")
     @Operation(summary = "동의 정보 인증 후 리다이렉트", description = "동의 정보 인증 후 리다이렉트 URI")
     public ResponseEntity<?> callback(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
                                       @RequestParam(name = "code") String code, HttpServletResponse res) {
@@ -82,6 +82,7 @@ public class MemberController {
             res.setHeader("Authorization", "Bearer " + accessToken);
             redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
 
+            // 회원 정보
             result.put("memberId", member.getMemberId());
             result.put("nickname", member.getNickname());
             result.put("grade", member.getGrade());
@@ -138,7 +139,7 @@ public class MemberController {
         }
     }
 
-    @GetMapping(value = "/{socialLoginType}/test")
+    @GetMapping(value = "/oauth/{socialLoginType}/test")
     @Operation(summary = "백엔드 소셜 로그인 인가 코드 요청", description = "백엔드 소셜 로그인 인가 코드 요청 테스트")
     public void test(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType, HttpServletResponse httpServletResponse) throws IOException {
         SocialAuthUrl socialAuthUrl = socialTypeMatcher.findSocialAuthUrlByType(socialLoginType);
@@ -189,6 +190,24 @@ public class MemberController {
         }
     }
 
+    @GetMapping(value = "/nickname/list/{nickname}")
+    @Operation(summary = "닉네임 리스트 가져오기", description = "닉네임 리스트 가져오기")
+    public ResponseEntity<?> searchNicnameList(@PathVariable(name = "nickname") String nickname) {
+        log.info(" >> [Nbbang Member Service] 닉네임 리스트 가져오기");
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
+            //DTO 넣어서 보내버리기
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (NoSuchMemberException e) {
+            log.info(e.getMessage());
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
     @GetMapping(value = "/grade")
     @Operation(description = "회원 등급 조회")
     public ResponseEntity<?> getMemberGrade(HttpServletRequest servletRequest) {
@@ -197,7 +216,6 @@ public class MemberController {
 
         try {
             String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
-            System.out.println("memberId = " + memberId);
             MemberDTO findMember = memberService.findMember(memberId);
             result.put("memberId", findMember.getMemberId());
             result.put("grade", findMember.getGrade());
@@ -300,7 +318,7 @@ public class MemberController {
 
             List<OTTView> ottViewList = new ArrayList<>();
             // 관심 OTT 저장하기 (Ott 없는 경우 있음)
-            for (int ottId : request.getOttView()) {
+            for (int ottId : request.getOttId()) {
                 // ott 내용 조회 Ott Service단으로 만들기
                 ottViewList.add(memberService.findByOttId(ottId));
             }
@@ -380,4 +398,6 @@ public class MemberController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         }
     }
+
+
 }

@@ -88,7 +88,7 @@ public class MemberServiceImpl implements MemberService {
         if (!redisUtil.deleteData(memberId))
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
-        // 소셜 로그아웃 구현
+        // 소셜에서 회원 삭제 (카카오는 연동 해제)
 
         // 다른 서비스에 이벤트 발행 후 관련 모든 데이터 지우기 (동일 서비스 cascade로 관련 테이블 모두 지우기)
         memberRepository.deleteByMemberId(memberId);
