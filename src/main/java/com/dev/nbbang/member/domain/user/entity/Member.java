@@ -26,7 +26,7 @@ import java.util.List;
 @Table(name = "MEMBER")
 public class Member implements UserDetails {
     @Id
-    @Column(name = "member_id", nullable = false)
+    @Column(name = "MEMBER_ID", nullable = false)
     private String memberId;
 
     @Column(name = "nickname", nullable = false)
@@ -66,6 +66,28 @@ public class Member implements UserDetails {
         if (this.point == null) point = 0L;
         if (this.exp == null) exp = 0L;
         if (this.partyInviteYn == null) partyInviteYn = "Y";
+    }
+
+    //https://stackoverflow.com/questions/32295688/spring-data-jpa-update-method
+    //https://www.inflearn.com/questions/16235
+    // 회원 등급 수정
+    public void updateMember(String memberId, Grade grade) {
+        this.memberId = memberId;
+        this.grade = grade;
+    }
+
+    // 회원 정보 수정
+    public void updateMember(String memberId, String nickname, List<OTTView> ottView, String partyInviteYn) {
+        this.memberId = memberId;
+        this.nickname = nickname;
+        this.ottView = ottView;
+        this.partyInviteYn = partyInviteYn;
+    }
+
+    // 회원 경험치 변경
+    public void updateMember(String memberId, Long exp) {
+        this.memberId = memberId;
+        this.exp = exp;
     }
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

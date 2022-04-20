@@ -22,6 +22,9 @@ public interface MemberService {
     // 회원 추가 정보 저장
     MemberDTO memberSave(Member member);
 
+    // 회원 정보 수정
+    MemberDTO updateMember(String memberId, Member member);
+
     // 닉네임 중복 체크
     boolean duplicateNickname(String nickname);
 

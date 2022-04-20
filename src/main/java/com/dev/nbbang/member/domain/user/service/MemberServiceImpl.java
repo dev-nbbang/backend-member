@@ -24,7 +24,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OTTViewRepository ottViewRepository;
@@ -60,9 +59,21 @@ public class MemberServiceImpl implements MemberService {
 
     // 추가 회원 정보 저장하기
     @Override
+    @Transactional
     public MemberDTO memberSave(Member member) {
         Optional<Member> savedMember = Optional.ofNullable(memberRepository.save(member));
         return MemberDTO.create(savedMember.orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER)));
+    }
+
+    // 회원 정보 업데이트
+    @Override
+    @Transactional
+    public MemberDTO updateMember(String sessionMemberId, Member member) {
+        // 1. 회원 찾기
+        Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+//        Member updatedMember = memberRepository.save(member);
+        findMember.updateMember(findMember.getMemberId(),member.getNickname(), member.getOttView(), member.getPartyInviteYn());
+        return MemberDTO.create(findMember);
     }
 
     @Override

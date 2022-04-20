@@ -81,7 +81,7 @@ public class MemberController {
             String accessToken = jwtUtil.generateAccessToken(findMember.getMemberId(), findMember.getNickname());
             String refreshToken = jwtUtil.generateRefreshToken(findMember.getMemberId(), findMember.getNickname());
             res.setHeader("Authorization", "Bearer " + accessToken);
-
+            System.out.println("accessToken = " + accessToken);
             // redis에 refresh Token 저장
             redisUtil.setData(findMember.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
 
@@ -247,10 +247,11 @@ public class MemberController {
 
         try {
             String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
-            MemberDTO findMember = memberService.findMember(memberId);
-            MemberDTO updatedMember = memberService.memberSave(Member.builder()
-                    .memberId(findMember.getMemberId())
-                    .grade(request.getGrade()).build());
+//            MemberDTO findMember = memberService.findMember(memberId);
+//            MemberDTO updatedMember = memberService.memberSave(Member.builder()
+//                    .memberId(findMember.getMemberId())
+//                    .grade(request.getGrade()).build());
+            MemberDTO updatedMember = memberService.updateMember(memberId, MemberGradeRequest.toEntity(request));
 
 //            result.put("memberId", updatedMember.getMemberId());
 //            result.put("grade", updatedMember.getGrade());
@@ -326,23 +327,24 @@ public class MemberController {
         try {
             String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
 
-            List<OTTView> ottViewList = new ArrayList<>();
+            List<OTTView> ottView = new ArrayList<>();
             // 관심 OTT 저장하기 (Ott 없는 경우 있음)
             for (int ottId : request.getOttId()) {
                 // ott 내용 조회 Ott Service단으로 만들기
-                ottViewList.add(memberService.findByOttId(ottId));
+                ottView.add(memberService.findByOttId(ottId));
             }
 
-            MemberDTO findMember = memberService.findMember(memberId);
-            MemberDTO updatedMember = memberService.memberSave(Member.builder()
-                    .memberId(findMember.getMemberId())
-                    .nickname(request.getNickname())
-                    .ottView(ottViewList)
-                    .partyInviteYn(request.getPartyInviteYn())
-                    .build());
+//            MemberDTO findMember = memberService.findMember(memberId);
+//            MemberDTO updatedMember = memberService.memberSave(Member.builder()
+//                    .memberId(findMember.getMemberId())
+//                    .nickname(request.getNickname())
+//                    .ottView(ottViewList)
+//                    .partyInviteYn(request.getPartyInviteYn())
+//                    .build());
+            MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request, ottView));
 
             // 닉네임이 변경된 경우에만 JWT 토큰 새로 갱신 및 Redis에 리프레시 토큰 저장
-            if (!findMember.getNickname().equals(request.getNickname())) {
+            if (!updatedMember.getNickname().equals(request.getNickname())) {
                 String accessToken = jwtUtil.generateAccessToken(updatedMember.getMemberId(), updatedMember.getNickname());
                 String refreshToken = jwtUtil.generateRefreshToken(updatedMember.getMemberId(), updatedMember.getNickname());
 
