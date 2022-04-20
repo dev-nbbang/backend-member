@@ -20,7 +20,7 @@ public interface MemberService {
     MemberDTO findMemberByNickname(String nickname);
 
     // 회원 추가 정보 저장
-    MemberDTO memberSave(Member member);
+    MemberDTO saveMember(Member member);
 
     // 회원 정보 수정
     MemberDTO updateMember(String memberId, Member member);
@@ -36,6 +36,15 @@ public interface MemberService {
 
     // 로그 아웃
     boolean logout(String memberId);
+
+    // 등급 수정
+    MemberDTO updateGrade(String memberId, Member member);
+
+    // 경험치 변경
+    MemberDTO updateExp(String memberId, Member member);
+
+    // 토큰 관리
+    String manageToken(MemberDTO member);
 
     OTTView findByOttId(int ottId);
 

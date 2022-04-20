@@ -19,7 +19,6 @@ public class MemberModifyRequest {
     private List<Integer> ottId;
     private String partyInviteYn;
 
-
     public static Member toEntity(MemberModifyRequest request, List<OTTView> ottView) {
         return Member.builder()
                 .memberId(request.getMemberId())

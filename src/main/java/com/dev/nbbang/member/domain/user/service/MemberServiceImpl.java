@@ -14,6 +14,7 @@ import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.user.repository.OTTViewRepository;
 import com.dev.nbbang.member.domain.user.api.util.SocialLoginIdUtil;
 import com.dev.nbbang.member.global.exception.NbbangException;
+import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OTTViewRepository ottViewRepository;
     private final SocialTypeMatcher socialTypeMatcher;
+    private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
 
     // 소셜타입마다 각각 다른 소셜 로그인
@@ -60,7 +62,7 @@ public class MemberServiceImpl implements MemberService {
     // 추가 회원 정보 저장하기
     @Override
     @Transactional
-    public MemberDTO memberSave(Member member) {
+    public MemberDTO saveMember(Member member) {
         Optional<Member> savedMember = Optional.ofNullable(memberRepository.save(member));
         return MemberDTO.create(savedMember.orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER)));
     }
@@ -69,19 +71,19 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDTO updateMember(String sessionMemberId, Member member) {
-        // 1. 회원 찾기
         Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
-//        Member updatedMember = memberRepository.save(member);
         findMember.updateMember(findMember.getMemberId(),member.getNickname(), member.getOttView(), member.getPartyInviteYn());
         return MemberDTO.create(findMember);
     }
 
+    // 닉네임 중복 확인
     @Override
     public boolean duplicateNickname(String nickname) {
         MemberDTO member = findMemberByNickname(nickname);
         return member.getNickname().length() > 0;
     }
 
+    //닉네임 리스트 가져오기
     @Override
     public List<MemberDTO> findMemberListByNickname(String nickname) {
         List<Member> findMemberList = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseThrow(
@@ -89,6 +91,7 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.createList(findMemberList);
     }
 
+    // 회원 탈퇴
     @Override
     public void deleteMember(String memberId) {
 
@@ -113,6 +116,32 @@ public class MemberServiceImpl implements MemberService {
         return redisUtil.deleteData(memberId);
     }
 
+    // 회원 등급 수정
+    @Override
+    @Transactional
+    public MemberDTO updateGrade(String sessionMemberId, Member member) {
+        Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        findMember.updateMember(findMember.getMemberId(), member.getGrade());
+        return MemberDTO.create(findMember);
+    }
+
+    // 회원 경험치 변경
+    @Override
+    @Transactional
+    public MemberDTO updateExp(String sessionMemberId, Member member) {
+        Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        findMember.updateMember(findMember.getMemberId(), member.getExp());
+        return MemberDTO.create(findMember);
+    }
+
+    // 엑세스 토큰, 리프레시 토큰 관리
+    @Override
+    public String manageToken(MemberDTO member) {
+        String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
+        redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
+
+        return jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
+    }
     public OTTView findByOttId(int ottId) {
         return ottViewRepository.findByOttId(ottId);
     }

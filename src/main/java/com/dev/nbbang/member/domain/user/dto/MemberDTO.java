@@ -25,7 +25,7 @@ public class MemberDTO {
     private Long exp;
     private String billingKey;
     private String partyInviteYn;
-    private List<OTTView> ottViewList;
+    private List<OTTView> ottView;
 
     public static MemberDTO create(Member member) {
         return MemberDTO.builder().memberId(member.getMemberId())
@@ -37,7 +37,7 @@ public class MemberDTO {
                 .exp(member.getExp())
                 .billingKey(member.getBillingKey())
                 .partyInviteYn(member.getPartyInviteYn())
-                .ottViewList(member.getOttView()).build();
+                .ottView(member.getOttView()).build();
     }
 
     public static List<MemberDTO> createList(List<Member> findMemberList) {
@@ -53,7 +53,7 @@ public class MemberDTO {
                     .exp(member.getExp())
                     .billingKey(member.getBillingKey())
                     .partyInviteYn(member.getPartyInviteYn())
-                    .ottViewList(member.getOttView()).build());
+                    .ottView(member.getOttView()).build());
         }
 
         return memberDTOList;
