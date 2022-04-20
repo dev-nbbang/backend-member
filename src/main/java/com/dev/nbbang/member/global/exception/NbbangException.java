@@ -4,8 +4,9 @@ public enum NbbangException {
     NOT_FOUND_MEMBER ("BE001", "No Such a Member"),
     NO_CREATE_MEMBER("BE002", "Doesn't Create Member"),
     FAIL_TO_LOGOUT("BE003", "Failed To Logout And Delete Redis Token Data"),
-    FAIL_TO_DELETE_MEMBER("BE004", "Failed To Delete Member"),;
-
+    FAIL_TO_DELETE_MEMBER("BE004", "Failed To Delete Member"),
+    FAIL_TO_CREATE_AUTH_URL("BE005", "Failed To Create Social Auth Url"),
+    ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),;
     private String code;
     private String message;
 
