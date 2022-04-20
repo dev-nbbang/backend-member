@@ -1,10 +1,9 @@
 package com.dev.nbbang.member.domain.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,54 +17,89 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @ToString
+@DynamicInsert
+@DynamicUpdate
+@AllArgsConstructor
+@Builder
 @Table(name = "MEMBER")
 public class Member implements UserDetails {
     @Id
-    @Column(name = "member_id", nullable = false)
+    @Column(name = "MEMBER_ID", nullable = false)
     private String memberId;
 
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "bank_id", nullable = false)
-    private int bankId;
+    @Column(name = "bank_id")
+    private Integer bankId;
 
     @Column(name = "bank_account")
     private String bankAccount;
 
-    @Column(name = "grade", nullable = false)
-    private String grade;
+    @Column(name = "grade")
+    @Enumerated(EnumType.STRING)
+    private Grade grade;
 
-    @Column(name = "point", nullable = false)
-    private long point;
+    @Column(name = "point")
+    private Long point;
 
-    @Column(name = "exp", nullable = false)
-    private long exp;
+    @Column(name = "exp")
+    private Long exp;
 
     @Column(name = "billing_key")
     private String billingKey;
 
-    @Column(name = "party_invite_yn", nullable = false)
-    private char partyInviteYn;
+    @Column(name = "party_invite_yn")
+    private String partyInviteYn;
 
-    @Builder
-    public Member(String memberId, String nickname, int bankId, String bankAccount, String grade, int point, int exp, String billingKey, char partyInviteYn) {
+    @ManyToMany
+    @JoinTable(name = "MEMBER_OTT",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "ott_id"))
+    private List<OTTView> ottView;
+
+    @PrePersist
+    private void prePersist() {
+        if (this.grade == null) grade = Grade.BRONZE;
+        if (this.point == null) point = 0L;
+        if (this.exp == null) exp = 0L;
+        if (this.partyInviteYn == null) partyInviteYn = "Y";
+    }
+
+    //https://stackoverflow.com/questions/32295688/spring-data-jpa-update-method
+    //https://www.inflearn.com/questions/16235
+    // 회원 등급 수정
+    public void updateMember(String memberId, Grade grade) {
+        this.memberId = memberId;
+        this.grade = grade;
+    }
+
+    // 회원 정보 수정
+    public void updateMember(String memberId, String nickname, List<OTTView> ottView, String partyInviteYn) {
         this.memberId = memberId;
         this.nickname = nickname;
-        this.bankId = bankId;
-        this.bankAccount = bankAccount;
-        this.grade = grade;
-        this.point = point;
-        this.exp = exp;
-        this.billingKey = billingKey;
+        this.ottView = ottView;
         this.partyInviteYn = partyInviteYn;
     }
 
-    @ManyToMany
-    @JoinTable(name="MEMBER_OTT",
-        joinColumns = @JoinColumn(name="member_id"),
-        inverseJoinColumns = @JoinColumn(name="ott_id"))
-    private List<OTTView> ottView;
+    // 회원 경험치 변경
+    public void updateMember(String memberId, Long exp) {
+        this.memberId = memberId;
+        this.exp = exp;
+    }
+
+    // 회원 계좌 수정
+    public void updateAccountMember(String memberId, Integer bankId, String bankAccount) {
+        this.memberId = memberId;
+        this.bankId = bankId;
+        this.bankAccount = bankAccount;
+    }
+
+    // 회원 빌링키 수정
+    public void updateAccountMember(String memberId, String billingKey) {
+        this.memberId = memberId;
+        this.billingKey = billingKey;
+    }
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Override

@@ -2,7 +2,6 @@ package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
