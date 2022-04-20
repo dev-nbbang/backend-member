@@ -107,7 +107,7 @@ class MemberRepositoryTest {
     void 회원가입_추가_회원정보_저장_관심OTT_없는_경우_성공() {
         //given
         final Member member = Member.builder()
-                .memberId("K-2197723261")
+                .memberId("Test Id")
                 .nickname("맹준")
                 .ottView(new ArrayList<>())
                 .build();
@@ -118,10 +118,10 @@ class MemberRepositoryTest {
         //then
         assertThat(savedMember.getMemberId()).isEqualTo(member.getMemberId());
         assertThat(savedMember.getNickname()).isEqualTo(member.getNickname());
-//        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
-//        assertThat(savedMember.getPoint()).isEqualTo(0);
-//        assertThat(savedMember.getExp()).isEqualTo(0);
-//        assertThat(savedMember.getPartyInviteYn()).isEqualTo("Y");
+        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
+        assertThat(savedMember.getPoint()).isEqualTo(0);
+        assertThat(savedMember.getExp()).isEqualTo(0);
+        assertThat(savedMember.getPartyInviteYn()).isEqualTo("Y");
     }
 
     @Test
@@ -143,7 +143,7 @@ class MemberRepositoryTest {
     @DisplayName("회원 레포지토리 : 닉네임으로 비슷한 회원 리스트 가져오기 - 실패")
     void 닉네임으로_비슷한_회원_리스트_가져오기_실패() {
         // given
-        String nickname = "test";
+        String nickname = "none";
 
         // when
         List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseGet(ArrayList::new);
