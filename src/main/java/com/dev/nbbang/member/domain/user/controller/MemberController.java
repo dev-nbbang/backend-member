@@ -87,7 +87,7 @@ public class MemberController {
             log.info(e.getMessage());
             log.info("회원가입필요");
 
-            return new ResponseEntity<>(MemberRegisterResponse.create(memberId, false, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberRegisterResponse.create(memberId, false, false), HttpStatus.OK);
         }
     }
 
