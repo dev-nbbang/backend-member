@@ -1,7 +1,9 @@
 package com.dev.nbbang.member.domain.user.api.util;
 
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
+import com.dev.nbbang.member.domain.user.api.exception.IllegalSocialTypeException;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
+import com.dev.nbbang.member.global.exception.NbbangException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +21,7 @@ public class SocialTypeMatcher {
         return socialOauthList.stream()
                 .filter(socialOauth -> socialOauth.type() == socialLoginType)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("알 수 없는 SocialLogin Type 입니다"));
+                .orElseThrow(() -> new IllegalSocialTypeException("잘못된 소셜 로그인 타입입니다.", NbbangException.ILLEGAL_SOCAIL_TYPE));
     }
 
 
@@ -27,6 +29,6 @@ public class SocialTypeMatcher {
         return socialAuthUrlList.stream()
                 .filter(x -> x.type() == socialLoginType)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("알 수 없는 SocialLogin Tpye 입니다"));
+                .orElseThrow(() -> new IllegalSocialTypeException("잘못된 소셜 로그인 타입입니다.", NbbangException.ILLEGAL_SOCAIL_TYPE));
     }
 }
