@@ -1,12 +1,19 @@
 package com.dev.nbbang.member.domain.user.controller;
 
+import com.dev.nbbang.member.domain.user.api.exception.IllegalSocialTypeException;
+import com.dev.nbbang.member.domain.user.api.util.KakaoAuthUrl;
+import com.dev.nbbang.member.domain.user.api.util.SocialAuthUrl;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
+import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
+import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
+import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.dto.response.MemberNicknameResponse;
 import com.dev.nbbang.member.domain.user.dto.response.MemberRegisterResponse;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
@@ -46,8 +53,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,9 +61,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WithMockUser
 class MemberControllerTest {
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
     @Autowired
     private MockMvc mvc;
 
@@ -68,10 +71,49 @@ class MemberControllerTest {
     private SocialTypeMatcher socialTypeMatcher;
 
     @MockBean
+    private SocialAuthUrl socialAuthUrl;
+
+    @MockBean
     private JwtUtil jwtUtil;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 소셜 로그인 인가코드 URL 생성 성공")
+    void 소셜_로그인_인가코드_URL_생성_성공() throws Exception {
+        //given
+        String uri = "/members/oauth/kakao";
+        given(socialTypeMatcher.findSocialAuthUrlByType(any())).willReturn(new KakaoAuthUrl());
+        given(socialAuthUrl.makeAuthorizationUrl()).willReturn("https://kauth.kakao.com/oauth/authorize?client_id&redirect_uri&response_type=code");
+
+        //when
+        MockHttpServletResponse response = mvc.perform(get(uri))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.authUrl").value("https://kauth.kakao.com/oauth/authorize?client_id&redirect_uri&response_type=code"))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 소셜 로그인 인가코드 URL 생성 실패")
+    void 소셜_로그인_인가코드_생성_실패() throws Exception {
+        //given
+        String uri = "/members/oauth/kakao";
+        given(socialTypeMatcher.findSocialAuthUrlByType(any())).willThrow(IllegalSocialTypeException.class);
+
+        MockHttpServletResponse response = mvc.perform(get(uri))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
 
     @Test
     @DisplayName("회원 컨트롤러 : 소셜 로그인 실패")
@@ -79,7 +121,6 @@ class MemberControllerTest {
         // given
         String uri = "/members/oauth/kakao/callback";
         given(memberService.socialLogin(any(), anyString())).willReturn(null);
-        given(memberService.manageToken(any())).willReturn("testToken");
 
         // when
         MockHttpServletResponse response = mvc.perform(MockMvcRequestBuilders
@@ -115,7 +156,7 @@ class MemberControllerTest {
                 .andReturn().getResponse();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-
+        assertThat(response.getHeader("Authorization")).isEqualTo("Bearer testToken");
     }
 
     @Test
@@ -171,6 +212,7 @@ class MemberControllerTest {
         String uri = "/members/new";
         given(memberService.findByOttId(anyInt())).willReturn(new OTTView(1, "test", "test.image"));
         given(memberService.saveMember(any())).willReturn(testMemberDTO());
+        given(memberService.manageToken(any())).willReturn("new Token");
 
         //when
         MockHttpServletResponse response = mvc.perform(
@@ -188,6 +230,7 @@ class MemberControllerTest {
 
         //then
         assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(response.getHeader("Authorization")).isEqualTo("Bearer new Token");
     }
 
     @Test
@@ -305,15 +348,13 @@ class MemberControllerTest {
     @DisplayName("회원 컨트롤러 : 회원 등급 조회 성공")
     void 회원_등급_조회_성공() throws Exception {
         // given
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("Authorization","Bearer testAccessToken");
         String uri = "/members/grade";
         given(jwtUtil.getUserid(anyString())).willReturn("testId");
         given(memberService.findMember(anyString())).willReturn(testMemberDTO());
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .session(session))
+                .header("Authorization", "Bearer testAccessToken"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("testId"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.grade").value("BRONZE"))
@@ -324,6 +365,255 @@ class MemberControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
+    @Test
+    @DisplayName("회원 컨트롤러: 회원 등급 조회 실패")
+    void 회원_등급_조회_실패() throws Exception {
+        // given
+        String uri = "/members/grade";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
+
+        //when
+        MockHttpServletResponse response = mvc.perform(get(uri)
+                .header("Authorization", "Bearer testAccessToken"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 등급 수정 성공")
+    void 회원_등급_수정_성공() throws Exception {
+        //given
+        String uri = "/members/grade";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.updateGrade(anyString(), any())).willReturn(updatedMemberDTO());
+
+        //when
+        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken")
+                .content(objectMapper.writeValueAsString(testMemberGradeRequest()))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("testId"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.grade").value("DIAMOND"))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        // then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 등급 수정 실패")
+    void 회원_등급_수정_실패() throws Exception {
+        //given
+        String uri = "/members/grade";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.updateGrade(anyString(), any())).willThrow(NoCreateMemberException.class);
+
+        //when
+        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken")
+                .content(objectMapper.writeValueAsString(testMemberGradeRequest()))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 경험치 변동 성공")
+    void 회원_경험치_변동_성공() throws Exception {
+        //given
+        String uri = "/members/exp";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.updateExp(anyString(), any())).willReturn(updatedMemberDTO());
+
+        //when
+        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken")
+                .content(objectMapper.writeValueAsString(testMemberExpRequest()))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("testId"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.exp").value(100))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 경험치 변동 실패")
+    void 회원_경험치_변동_실패() throws Exception {
+        //given
+        String uri = "/members/exp";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.updateExp(anyString(), any())).willThrow(NoCreateMemberException.class);
+
+        //when
+        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken")
+                .content(objectMapper.writeValueAsString(testMemberExpRequest()))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 정보 불러오기 성공")
+    void 회원_정보_불러오기_성공() throws Exception {
+        //given
+        String uri = "/members/profile";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.findMember(anyString())).willReturn(testMemberDTO());
+
+        //when
+        MockHttpServletResponse response = mvc.perform(get(uri)
+                .header("Authorization", "Bearer testAccessToken"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("testId"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("testNickname"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottId").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottName").value("test"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottImage").value("test.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.grade").value("BRONZE"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.exp").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.point").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.partyInviteYn").value("Y"))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 정보 불러오기 실패")
+    void 회원_정보_불러오기_실패() throws Exception {
+        // given
+        String uri = "/members/profile";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
+
+        //when
+        MockHttpServletResponse response = mvc.perform(get(uri)
+                .header("Authorization", "Bearer testAccessToken"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 정보 수정하기 성공")
+    void 회원_정보_수정하기_성공() throws Exception {
+        // given
+        String uri = "/members/profile";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.updateMember(anyString(), any())).willReturn(updatedMemberDTO());
+        given(memberService.findMember(anyString())).willReturn(testMemberDTO());
+        given(memberService.manageToken(any())).willReturn("update token");
+
+        //when
+        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken")
+                .content(objectMapper.writeValueAsString(testMemberModifyRequest()))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("testId"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("updateNickname"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottId").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottName").value("test"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottImage").value("test.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.partyInviteYn").value("N"))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
+        assertThat(response.getHeader("Authorization")).isEqualTo("Bearer update token");
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 회원 정보 수정하기 실패")
+    void 회원_정보_수정하기_실패() throws Exception {
+        //given
+        String uri = "/members/profile";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.updateMember(anyString(), any())).willThrow(NoCreateMemberException.class);
+
+        //when
+        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken")
+                .content(objectMapper.writeValueAsString(testMemberModifyRequest()))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 로그아웃 성공")
+    void 로그아웃_성공() throws Exception {
+        //given
+        String uri = "/members/logout";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.logout(anyString())).willReturn(true);
+
+        //when
+        //when
+        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken"))
+                .andExpect(status().isNoContent())
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.NO_CONTENT.value());
+    }
+
+    @Test
+    @DisplayName("회원 컨트롤러 : 로그아웃 실패")
+    void 로그아웃_실패() throws Exception {
+        //given
+        String uri = "/members/logout";
+        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        given(memberService.logout(anyString())).willThrow(FailLogoutMemberException.class);
+
+        //when
+        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
+                .header("Authorization", "Bearer testAccessToken"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        //then
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
     private static List<OTTView> testOttView() {
         List<OTTView> ottView = new ArrayList<>();
         ottView.add(new OTTView(1, "test", "test.image"));
@@ -331,7 +621,6 @@ class MemberControllerTest {
     }
 
     private static MemberDTO testMemberDTO() {
-
         return MemberDTO.builder().memberId("testId")
                 .nickname("testNickname")
                 .ottView(testOttView())
@@ -342,12 +631,25 @@ class MemberControllerTest {
                 .build();
     }
 
+    private static MemberDTO updatedMemberDTO() {
+        return MemberDTO.builder()
+                .memberId("testId")
+                .nickname("updateNickname")
+                .ottView(testOttView())
+                .grade(Grade.DIAMOND)
+                .exp(100L)
+                .point(10000L)
+                .partyInviteYn("N")
+                .build();
+    }
+
     private static List<MemberDTO> testMemberDTOlist() {
         List<MemberDTO> list = new ArrayList<>();
         list.add(testMemberDTO());
 
         return list;
     }
+
     private static MemberRegisterRequest testRegisterMember() {
         List<Integer> ottId = new ArrayList<>();
         ottId.add(1);
@@ -357,4 +659,26 @@ class MemberControllerTest {
                 .build();
     }
 
+    private static MemberGradeRequest testMemberGradeRequest() {
+        return MemberGradeRequest.builder()
+                .memberId("testId")
+                .grade(Grade.DIAMOND).build();
+    }
+
+    private static MemberExpRequest testMemberExpRequest() {
+        return MemberExpRequest.builder()
+                .memberId("testId")
+                .exp(100L).build();
+    }
+
+    private static MemberModifyRequest testMemberModifyRequest() {
+        List<Integer> ottId = new ArrayList<>();
+        ottId.add(1);
+        return MemberModifyRequest.builder()
+                .memberId("testId")
+                .nickname("updateNickname")
+                .ottId(ottId)
+                .partyInviteYn("N")
+                .build();
+    }
 }

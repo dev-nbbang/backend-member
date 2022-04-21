@@ -54,7 +54,8 @@ public class MemberController {
         try {
             // PathVariable의 소셜 타입을 인가 코드 URL 생성 (카카오, 구글)
             SocialAuthUrl socialAuthUrl = socialTypeMatcher.findSocialAuthUrlByType(socialLoginType);
-            return new ResponseEntity<>(AuthResponse.create(socialAuthUrl.makeAuthorizationUrl()), HttpStatus.OK);
+            String authUrl = socialAuthUrl.makeAuthorizationUrl();
+            return new ResponseEntity<>(AuthResponse.create(authUrl), HttpStatus.OK);
         } catch (IllegalSocialTypeException | FailCreateAuthUrlException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
@@ -237,6 +238,7 @@ public class MemberController {
         log.info(" >> [Nbbang Member Service] 회원 프로필 불러오기");
 
         try {
+            // 현재 자신만 불러오는 걸로 되었네..?
             String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
 
             // 회원 정보 불러오기
