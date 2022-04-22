@@ -9,20 +9,15 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
-import com.dev.nbbang.member.domain.user.dto.response.MemberNicknameResponse;
-import com.dev.nbbang.member.domain.user.dto.response.MemberRegisterResponse;
 import com.dev.nbbang.member.domain.user.entity.Grade;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.config.SecurityConfig;
 import com.dev.nbbang.member.global.util.JwtUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,16 +29,11 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -187,7 +177,7 @@ class MemberControllerTest {
     void 추가_회원_가입_실패() throws Exception {
         // given
         String uri = "/members/new";
-        given(memberService.findByOttId(anyInt())).willReturn(new OTTView(1, "test", "test.image"));
+        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
         given(memberService.saveMember(any())).willThrow(NoCreateMemberException.class);
 
         //when
@@ -210,7 +200,7 @@ class MemberControllerTest {
     void 추가_회원_가입_성공() throws Exception {
         // given
         String uri = "/members/new";
-        given(memberService.findByOttId(anyInt())).willReturn(new OTTView(1, "test", "test.image"));
+        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
         given(memberService.saveMember(any())).willReturn(testMemberDTO());
         given(memberService.manageToken(any())).willReturn("new Token");
 
@@ -614,9 +604,9 @@ class MemberControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
-    private static List<OTTView> testOttView() {
-        List<OTTView> ottView = new ArrayList<>();
-        ottView.add(new OTTView(1, "test", "test.image"));
+    private static List<OttView> testOttView() {
+        List<OttView> ottView = new ArrayList<>();
+        ottView.add(new OttView(1, "test", "test.image"));
         return ottView;
     }
 

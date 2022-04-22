@@ -1,5 +1,9 @@
 package com.dev.nbbang.member.domain.user.controller;
 
+import com.dev.nbbang.member.domain.memberott.dto.MemberOttDTO;
+import com.dev.nbbang.member.domain.memberott.service.MemberOttService;
+import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
+import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.api.dto.AuthResponse;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.exception.FailCreateAuthUrlException;
@@ -12,7 +16,7 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.dto.response.*;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
@@ -42,6 +46,8 @@ import java.util.*;
 @Tag(name = "Member", description = "Member API")
 public class MemberController {
     private final MemberService memberService;
+    private final OttViewService ottViewService;
+    private final MemberOttService memberOttService;
     private final SocialTypeMatcher socialTypeMatcher;
     private final JwtUtil jwtUtil;
 
@@ -96,21 +102,21 @@ public class MemberController {
     @Operation(summary = "추가 회원 가입", description = "추가 회원 가입")
     public ResponseEntity<?> signUp(@RequestBody MemberRegisterRequest request, HttpServletResponse servletResponse) {
         try {
-            List<OTTView> ottView = new ArrayList<>();
-            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
-            for (int ottId : request.getOttId()) {
-                ottView.add(memberService.findByOttId(ottId));
-            }
+            // OTT ID로 OTT 서비스 불러오기
+//            List<OttViewDTO> ottView = ottViewService.findAllByOttId(request.getOttId());
 
             // 요청 데이터 엔티티에 저장
-            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request, ottView));
+            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request));
+
+            // 관심 OTT 등록
+            List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(savedMember.getMemberId(), request.getOttId());
 
             // 회원 생성이 완료된 경우
             String accessToken = memberService.manageToken(savedMember);
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             log.info("redis 저장 완료");
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember,savedMemberOtt, true), HttpStatus.CREATED);
         } catch (NoCreateMemberException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 
@@ -260,18 +266,19 @@ public class MemberController {
         try {
             String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
 
-            List<OTTView> ottView = new ArrayList<>();
-            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
-            for (int ottId : request.getOttId()) {
-                // ott 내용 조회 Ott Service단으로 만들기
-                ottView.add(memberService.findByOttId(ottId));
-            }
-
             // 변경 전 닉네임 가져오기
             MemberDTO findMember = memberService.findMember(memberId);
 
             // 회원 정보 수정
-            MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request, ottView));
+            MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request));
+
+            // 관심 OTT 수정 시 변경 (ottViewService.saveMemberOtt 이렇게 가야할듯)
+            List<OttViewDTO> ottViewDTO = new ArrayList<>();
+            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
+            for (int ottId : request.getOttId()) {
+                // ott 내용 조회 Ott Service단으로 만들기
+                ottViewDTO.add(ottViewService.findByOttId(ottId));
+            }
 
             // 닉네임이 변경된 경우에만 JWT 토큰 새로 갱신 및 Redis에 리프레시 토큰 저장
             if (!findMember.getNickname().equals(updatedMember.getNickname())) {

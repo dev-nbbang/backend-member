@@ -1,11 +1,11 @@
 package com.dev.nbbang.member.domain.user.entity;
 
+import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +18,6 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor
-@ToString
 @DynamicInsert
 @DynamicUpdate
 @AllArgsConstructor
@@ -54,11 +53,14 @@ public class Member implements UserDetails {
     @Column(name = "party_invite_yn")
     private String partyInviteYn;
 
-    @ManyToMany
-    @JoinTable(name = "MEMBER_OTT",
-            joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "ott_id"))
-    private List<OTTView> ottView;
+    @OneToMany(mappedBy = "member")
+    private List<MemberOtt> memberOttList = new ArrayList<>();
+
+//    @ManyToMany
+//    @JoinTable(name = "MEMBER_OTT",
+//            joinColumns = @JoinColumn(name = "member_id"),
+//            inverseJoinColumns = @JoinColumn(name = "ott_id"))
+//    private List<OttView> ottView = new ArrayList<>();
 
     @PrePersist
     private void prePersist() {
@@ -77,10 +79,9 @@ public class Member implements UserDetails {
     }
 
     // 회원 정보 수정
-    public void updateMember(String memberId, String nickname, List<OTTView> ottView, String partyInviteYn) {
+    public void updateMember(String memberId, String nickname, String partyInviteYn) {
         this.memberId = memberId;
         this.nickname = nickname;
-        this.ottView = ottView;
         this.partyInviteYn = partyInviteYn;
     }
 

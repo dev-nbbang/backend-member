@@ -5,13 +5,13 @@ import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
-import com.dev.nbbang.member.domain.user.repository.OTTViewRepository;
+import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.domain.user.api.util.SocialLoginIdUtil;
 import com.dev.nbbang.member.global.exception.NbbangException;
 import com.dev.nbbang.member.global.util.JwtUtil;
@@ -27,7 +27,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
-    private final OTTViewRepository ottViewRepository;
+    private final OttViewRepository ottViewRepository;
     private final SocialTypeMatcher socialTypeMatcher;
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
@@ -72,7 +72,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDTO updateMember(String sessionMemberId, Member member) {
         Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
-        findMember.updateMember(findMember.getMemberId(),member.getNickname(), member.getOttView(), member.getPartyInviteYn());
+        findMember.updateMember(findMember.getMemberId(),member.getNickname(),member.getPartyInviteYn());
         return MemberDTO.create(findMember);
     }
 
@@ -141,8 +141,5 @@ public class MemberServiceImpl implements MemberService {
         redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
 
         return jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
-    }
-    public OTTView findByOttId(int ottId) {
-        return ottViewRepository.findByOttId(ottId);
     }
 }
