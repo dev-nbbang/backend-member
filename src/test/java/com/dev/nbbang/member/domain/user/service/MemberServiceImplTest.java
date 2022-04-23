@@ -223,7 +223,7 @@ class MemberServiceImplTest {
 
         //then
         assertThat(updatedMember.getNickname()).isEqualTo("update nickname");
-        assertThat(updatedMember.getOttView().size()).isEqualTo(0);
+//        assertThat(updatedMember.getOttView().size()).isEqualTo(0);
         assertThat(updatedMember.getPartyInviteYn()).isEqualTo("N");
     }
 
@@ -298,7 +298,7 @@ class MemberServiceImplTest {
                 .exp(0L)
                 .grade(Grade.BRONZE)
                 .partyInviteYn("Y")
-                .ottView(new ArrayList<>())
+//                .ottView(new ArrayList<>())
                 .build();
     }
 
@@ -324,7 +324,7 @@ class MemberServiceImplTest {
                .point(0L)
                .exp(100L)
                .grade(Grade.SILVER)
-               .ottView(new ArrayList<>())
+//               .ottView(new ArrayList<>())
                .partyInviteYn("N").build();
    }
 }

@@ -47,7 +47,7 @@ import java.util.*;
 public class MemberController {
     private final MemberService memberService;
     private final OttViewService ottViewService;
-    private final MemberOttService memberOttService;
+//    private final MemberOttService memberOttService;
     private final SocialTypeMatcher socialTypeMatcher;
     private final JwtUtil jwtUtil;
 
@@ -106,17 +106,20 @@ public class MemberController {
 //            List<OttViewDTO> ottView = ottViewService.findAllByOttId(request.getOttId());
 
             // 요청 데이터 엔티티에 저장
-            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request));
+//            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request));
 
             // 관심 OTT 등록
-            List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(savedMember.getMemberId(), request.getOttId());
+//            List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(savedMember.getMemberId(), request.getOttId());
+
+            // 요청 데이터 엔티이에 저장
+            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request), request.getOttId());
 
             // 회원 생성이 완료된 경우
             String accessToken = memberService.manageToken(savedMember);
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             log.info("redis 저장 완료");
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember,savedMemberOtt, true), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true), HttpStatus.CREATED);
         } catch (NoCreateMemberException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 
@@ -270,15 +273,15 @@ public class MemberController {
             MemberDTO findMember = memberService.findMember(memberId);
 
             // 회원 정보 수정
-            MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request));
+            MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request), request.getOttId());
 
-            // 관심 OTT 수정 시 변경 (ottViewService.saveMemberOtt 이렇게 가야할듯)
-            List<OttViewDTO> ottViewDTO = new ArrayList<>();
-            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
-            for (int ottId : request.getOttId()) {
-                // ott 내용 조회 Ott Service단으로 만들기
-                ottViewDTO.add(ottViewService.findByOttId(ottId));
-            }
+//            // 관심 OTT 수정 시 변경 (ottViewService.saveMemberOtt 이렇게 가야할듯)
+//            List<OttViewDTO> ottViewDTO = new ArrayList<>();
+//            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
+//            for (int ottId : request.getOttId()) {
+//                // ott 내용 조회 Ott Service단으로 만들기
+//                ottViewDTO.add( ottViewService.findByOttId(ottId));
+//            }
 
             // 닉네임이 변경된 경우에만 JWT 토큰 새로 갱신 및 Redis에 리프레시 토큰 저장
             if (!findMember.getNickname().equals(updatedMember.getNickname())) {

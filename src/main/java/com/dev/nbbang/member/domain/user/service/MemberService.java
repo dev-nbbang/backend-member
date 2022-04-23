@@ -21,8 +21,14 @@ public interface MemberService {
     // 회원 추가 정보 저장
     MemberDTO saveMember(Member member);
 
+    // 회원 추가 정보 저장 (테스트)
+    MemberDTO saveMember(Member member, List<Integer> ottId);
+
     // 회원 정보 수정
     MemberDTO updateMember(String memberId, Member member);
+
+    // 회원 정보 수정 (테스트)
+    MemberDTO updateMember(String memberId, Member member, List<Integer> ottId);
 
     // 닉네임 중복 체크
     boolean duplicateNickname(String nickname);
@@ -44,7 +50,5 @@ public interface MemberService {
 
     // 토큰 관리
     String manageToken(MemberDTO member);
-
-
 
 }

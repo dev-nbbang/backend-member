@@ -31,5 +31,12 @@ public class MemberOtt {
     @JoinColumn(name = "ott_id")
     private OttView ottView;
 
+    public void addMember(Member member) {
+        if(this.member != null) {
+            member.getMemberOtt().remove(this);
+        }
+        this.member = member;
+        member.getMemberOtt().add(this);        // new HashSet<> 초기화가 되었는데 왜 안될지 - @Builder.Default
+    }
 }
 

@@ -13,7 +13,10 @@ public interface MemberOttRepository extends JpaRepository<MemberOtt, Long> {
     // 관심 OTT 저장
     MemberOtt save(MemberOtt memberOtt);
 
-    List<MemberOtt> saveAll(List<MemberOtt> memberOttList);
+//    @Override
+//    <S extends MemberOtt> List<S> saveAll(Iterable<S> entities);
+
+//    List<MemberOtt> saveAll(List<MemberOtt> memberOttList);
     // 관심 OTT 삭제
     void deleteByMember(Member member);
 

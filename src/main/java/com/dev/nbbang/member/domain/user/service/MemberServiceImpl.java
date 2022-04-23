@@ -1,5 +1,9 @@
 package com.dev.nbbang.member.domain.user.service;
 
+import com.dev.nbbang.member.domain.memberott.dto.MemberOttDTO;
+import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.memberott.repository.MemberOttRepository;
+import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
@@ -22,11 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
+    private final MemberOttRepository memberOttRepository;
     private final OttViewRepository ottViewRepository;
     private final SocialTypeMatcher socialTypeMatcher;
     private final JwtUtil jwtUtil;
@@ -63,8 +69,24 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDTO saveMember(Member member) {
-        Optional<Member> savedMember = Optional.ofNullable(memberRepository.save(member));
-        return MemberDTO.create(savedMember.orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER)));
+        Member savedMember = Optional.ofNullable(memberRepository.save(member)).orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
+
+        return MemberDTO.create(savedMember);
+    }
+
+    @Override
+    @Transactional
+    public MemberDTO saveMember(Member member, List<Integer> ottId) {
+        // 1. 회원 저장
+        Member savedMember = Optional.ofNullable(memberRepository.save(member)).orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
+
+        // 2. OTT 찾기
+        List<OttView> findOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
+
+        // 3. Member OTT 저장
+        List<MemberOtt> savedMemberOtt = memberOttRepository.saveAll(MemberOttDTO.toEntityList(savedMember, findOttViews));
+
+        return MemberDTO.create(savedMember);
     }
 
     // 회원 정보 업데이트
@@ -72,8 +94,29 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDTO updateMember(String sessionMemberId, Member member) {
         Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
-        findMember.updateMember(findMember.getMemberId(),member.getNickname(),member.getPartyInviteYn());
+//        findMember.updateMember(findMember.getMemberId(),member.getNickname(),member.getPartyInviteYn());
         return MemberDTO.create(findMember);
+    }
+
+    @Override
+    @Transactional
+    public MemberDTO updateMember(String sessionMemberId, Member member, List<Integer> ottId) {
+        // 1. 회원 찾기
+        Member updatedMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+
+        // 2. OTT 찾기 (회원 아이디를 가지고 getMemberOtt - list로 가져오기
+        List<OttView> updatedOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
+
+        // 3. 회원으로 불러온 Member OTT 지워주기
+        System.out.println("updatedMember = " + updatedMember.getMemberOtt());
+        System.out.println("updatedMember = " + updatedMember.getMemberOtt().size());
+        updatedMember.getMemberOtt().clear();
+        List<MemberOtt> updatedMemberOtt = memberOttRepository.saveAll(MemberOttDTO.toEntityList(updatedMember, updatedOttViews));
+
+        // 4. 회원 및 관심 OTT 관계 추가
+        updatedMember.updateMember(updatedMember.getMemberId(), member.getNickname(), member.getPartyInviteYn(),updatedMemberOtt);
+
+        return MemberDTO.create(updatedMember);
     }
 
     // 닉네임 중복 확인

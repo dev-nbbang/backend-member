@@ -1,5 +1,7 @@
 package com.dev.nbbang.member.domain.user.controller;
 
+import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.api.exception.IllegalSocialTypeException;
 import com.dev.nbbang.member.domain.user.api.util.KakaoAuthUrl;
 import com.dev.nbbang.member.domain.user.api.util.SocialAuthUrl;
@@ -11,6 +13,7 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
+import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
@@ -36,7 +39,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,6 +62,8 @@ class MemberControllerTest {
     @MockBean
     private MemberService memberService;
 
+    @MockBean
+    private OttViewService ottViewService;
     @MockBean
     private SocialTypeMatcher socialTypeMatcher;
 
@@ -177,7 +184,7 @@ class MemberControllerTest {
     void 추가_회원_가입_실패() throws Exception {
         // given
         String uri = "/members/new";
-        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
+//        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
         given(memberService.saveMember(any())).willThrow(NoCreateMemberException.class);
 
         //when
@@ -200,9 +207,11 @@ class MemberControllerTest {
     void 추가_회원_가입_성공() throws Exception {
         // given
         String uri = "/members/new";
-        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
-        given(memberService.saveMember(any())).willReturn(testMemberDTO());
+//        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
+//        given(memberService.saveMember(any())).willReturn(testMemberDTO());
+        given(memberService.saveMember(any(), anyList())).willReturn(testMemberDTO());
         given(memberService.manageToken(any())).willReturn("new Token");
+
 
         //when
         MockHttpServletResponse response = mvc.perform(
@@ -610,10 +619,25 @@ class MemberControllerTest {
         return ottView;
     }
 
+    private static List<MemberOtt> testMemberOtt() {
+        List<MemberOtt> memberOtt = new ArrayList<>();
+        Member testMember = Member.builder().memberId("testId")
+                .nickname("testNickname")
+                .grade(Grade.BRONZE)
+                .exp(0L)
+                .point(0L)
+                .partyInviteYn("Y")
+                .build();
+
+        memberOtt.add(MemberOtt.builder().member(testMember).ottView(new OttView(1, "test", "test.image")).build());
+
+        return memberOtt;
+    }
     private static MemberDTO testMemberDTO() {
         return MemberDTO.builder().memberId("testId")
                 .nickname("testNickname")
-                .ottView(testOttView())
+                .memberOtt(testMemberOtt())
+//                .ottView(testOttView())
                 .grade(Grade.BRONZE)
                 .exp(0L)
                 .point(0L)
@@ -625,7 +649,7 @@ class MemberControllerTest {
         return MemberDTO.builder()
                 .memberId("testId")
                 .nickname("updateNickname")
-                .ottView(testOttView())
+//                .ottView(testOttView())
                 .grade(Grade.DIAMOND)
                 .exp(100L)
                 .point(10000L)

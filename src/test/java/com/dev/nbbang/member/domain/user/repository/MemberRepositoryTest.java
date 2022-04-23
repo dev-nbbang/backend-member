@@ -87,7 +87,8 @@ class MemberRepositoryTest {
         final Member member = Member.builder()
                 .memberId("TestIds")
                 .nickname("TestMemberA")
-                .ottView(ottViewList).build();
+                .build();
+//                .ottView(ottViewList).build();
 
         //when
         Member savedMember = memberRepository.save(member);
@@ -95,7 +96,7 @@ class MemberRepositoryTest {
         //then
         assertThat(savedMember.getMemberId()).isEqualTo(member.getMemberId());
         assertThat(savedMember.getNickname()).isEqualTo(member.getNickname());
-        assertThat(savedMember.getOttView().size()).isEqualTo(member.getOttView().size());
+//        assertThat(savedMember.getOttView().size()).isEqualTo(member.getOttView().size());
         assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(savedMember.getPoint()).isEqualTo(0);
         assertThat(savedMember.getExp()).isEqualTo(0);
@@ -108,9 +109,9 @@ class MemberRepositoryTest {
         //given
         final Member member = Member.builder()
                 .memberId("Test Id")
-                .nickname("맹준")
-                .ottView(new ArrayList<>())
-                .build();
+                .nickname("맹준").build();
+//                .ottView(new ArrayList<>())
+//                .build();
 
         //when
         Member savedMember = memberRepository.save(member);

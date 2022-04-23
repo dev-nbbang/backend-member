@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Builder
 @NoArgsConstructor
@@ -38,6 +39,7 @@ public class MemberDTO {
                 .exp(member.getExp())
                 .billingKey(member.getBillingKey())
                 .partyInviteYn(member.getPartyInviteYn())
+                .memberOtt(member.getMemberOtt())
                 .build();
     }
 
@@ -54,6 +56,7 @@ public class MemberDTO {
                     .exp(member.getExp())
                     .billingKey(member.getBillingKey())
                     .partyInviteYn(member.getPartyInviteYn())
+                    .memberOtt(member.getMemberOtt())
                     .build());
         }
 

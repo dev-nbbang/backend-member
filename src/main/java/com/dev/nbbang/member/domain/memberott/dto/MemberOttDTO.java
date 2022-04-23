@@ -8,7 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @Builder
@@ -34,12 +36,17 @@ public class MemberOttDTO {
     }
 
     public static List<MemberOtt> toEntityList(Member member, List<OttView> ottViewList) {
-        List<MemberOtt> memberOttList = new ArrayList<>();
+        List<MemberOtt> memberOttSet = new ArrayList<>();
         for (OttView ottView : ottViewList) {
-            memberOttList.add(MemberOtt.builder().member(member).ottView(ottView).build());
+            memberOttSet.add(MemberOtt.builder().member(member).ottView(ottView).build());
         }
 
-        return memberOttList;
+        // 회원 - 회원OTT 양방향 관계 매핑
+        for (MemberOtt memberOtt : memberOttSet) {
+            memberOtt.addMember(member);
+        }
+
+        return memberOttSet;
 
     }
 }
