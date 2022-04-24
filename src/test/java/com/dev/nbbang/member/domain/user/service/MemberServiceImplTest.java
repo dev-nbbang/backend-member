@@ -1,7 +1,7 @@
 package com.dev.nbbang.member.domain.user.service;
 
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.memberott.repository.MemberOttRepository;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;

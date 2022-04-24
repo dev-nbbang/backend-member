@@ -8,7 +8,8 @@ public enum NbbangException {
     FAIL_TO_CREATE_AUTH_URL("BE005", "Failed To Create Social Auth Url"),
     ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),
     NOT_FOUND_OTT("BE301", "No Such a Ott"),
-    NO_CREATE_MEMBER_OTT("BE302", "Doesn't create Member interest Ott");
+    NO_CREATE_MEMBER_OTT("BE302", "Doesn't create Member interest Ott"),
+    NOT_FOUND_MEMBER_OTT("BE303", "No Such A MEmber Ott"),;
     private String code;
     private String message;
 

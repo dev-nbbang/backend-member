@@ -1,9 +1,9 @@
 package com.dev.nbbang.member.domain.user.service;
 
-import com.dev.nbbang.member.domain.memberott.dto.MemberOttDTO;
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.memberott.exception.NoCreatedMemberOtt;
-import com.dev.nbbang.member.domain.memberott.repository.MemberOttRepository;
+import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOtt;
+import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor

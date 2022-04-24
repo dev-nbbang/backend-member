@@ -1,11 +1,7 @@
 package com.dev.nbbang.member.domain.user.controller;
 
-import com.dev.nbbang.member.domain.memberott.dto.MemberOttDTO;
-import com.dev.nbbang.member.domain.memberott.exception.NoCreatedMemberOtt;
-import com.dev.nbbang.member.domain.memberott.service.MemberOttService;
-import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
+import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOtt;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
-import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.api.dto.AuthResponse;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.exception.FailCreateAuthUrlException;
@@ -18,7 +14,6 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.dto.response.*;
-import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;

@@ -1,6 +1,6 @@
 package com.dev.nbbang.member.domain.user.controller;
 
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.api.exception.IllegalSocialTypeException;
 import com.dev.nbbang.member.domain.user.api.util.KakaoAuthUrl;
@@ -39,9 +39,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

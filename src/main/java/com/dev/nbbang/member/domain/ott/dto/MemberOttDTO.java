@@ -1,6 +1,6 @@
-package com.dev.nbbang.member.domain.memberott.dto;
+package com.dev.nbbang.member.domain.ott.dto;
 
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import lombok.AllArgsConstructor;
@@ -8,9 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @AllArgsConstructor
 @Builder

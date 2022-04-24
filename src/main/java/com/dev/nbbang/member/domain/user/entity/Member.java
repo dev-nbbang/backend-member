@@ -1,7 +1,6 @@
 package com.dev.nbbang.member.domain.user.entity;
 
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.entity.OttView;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;

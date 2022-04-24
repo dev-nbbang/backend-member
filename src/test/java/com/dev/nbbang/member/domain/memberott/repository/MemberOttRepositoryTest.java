@@ -1,12 +1,12 @@
 package com.dev.nbbang.member.domain.memberott.repository;
 
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
+import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -19,8 +19,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -98,39 +96,33 @@ class MemberOttRepositoryTest {
         Member member = testMember();
 
         // when
-        verify(memberOttRepository, times(1)).deleteByMember(member);
+        memberOttRepository.deleteByMember(member);
+        Optional<List<MemberOtt>> findMemberOtt = memberOttRepository.findAllByMember(member);
+
+        // then
+        assertThat(findMemberOtt.isPresent()).isTrue();
+        assertEquals(findMemberOtt.get(), Collections.emptyList());
     }
 
-    @Test
-    @DisplayName("관심 OTT 레포지토리 : 회원 아이디로 관심 OTT 전체 삭제 실패")
-    void 관심_OTT_전체_삭제_실패() {
-        // given
-        Member member = Member.builder().memberId("new").nickname("new").build();
-
-        // when
-        verify(memberOttRepository, times(0)).deleteByMember(member);
-    }
 
     @Test
     @DisplayName("관심 OTT 레포지토리 : 회원 아이디로 관심 OTT 한 개 삭제 성공")
     void 관심_OTT_한개_삭제_성공() {
         // given
         Member member = testMember();
-        OttView ottView = testOttView();
+        OttView ottView = OttView.builder()
+                .ottId(2)
+                .ottName("test2")
+                .ottImage("test2.com")
+                .build();
 
         // when
-        verify(memberOttRepository, times(1)).deleteByMemberAndOttView(member,ottView);
-    }
+        memberOttRepository.deleteByMemberAndOttView(member, ottView);
+        Optional<List<MemberOtt>> findMemberOtt = memberOttRepository.findAllByMember(member);
 
-    @Test
-    @DisplayName("관심 OTT 레포지토리 : 회원 아이디로 관심 OTT 한 개 삭제 실패")
-    void 관심_OTT_전체_삭제_싪패() {
-        // given
-        Member member = Member.builder().memberId("new").nickname("new").build();
-        OttView ottView = testOttView();
-
-        // when
-        verify(memberOttRepository, times(0)).deleteByMemberAndOttView(member, ottView);
+        //then
+        assertThat(findMemberOtt.isPresent()).isTrue();
+        assertEquals(findMemberOtt.get().size(),1);
     }
 
     private static List<MemberOtt> testMemberOtt(){

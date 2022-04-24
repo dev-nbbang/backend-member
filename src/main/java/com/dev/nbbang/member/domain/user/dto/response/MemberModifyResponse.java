@@ -1,6 +1,6 @@
 package com.dev.nbbang.member.domain.user.dto.response;
 
-import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import lombok.AllArgsConstructor;

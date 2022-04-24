@@ -1,4 +1,4 @@
-package com.dev.nbbang.member.domain.memberott.exception;
+package com.dev.nbbang.member.domain.ott.exception;
 
 import com.dev.nbbang.member.global.exception.NbbangException;
 

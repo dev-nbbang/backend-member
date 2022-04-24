@@ -1,4 +1,4 @@
-package com.dev.nbbang.member.domain.memberott.entity;
+package com.dev.nbbang.member.domain.ott.entity;
 
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.entity.Member;
