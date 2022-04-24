@@ -1,5 +1,9 @@
 package com.dev.nbbang.member.domain.user.service;
 
+import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.memberott.repository.MemberOttRepository;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
+import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
@@ -21,14 +25,19 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
     @Mock
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
+
+    @Mock
+    private MemberOttRepository memberOttRepository;
+
+    @Mock
+    private OttViewRepository ottViewRepository;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -49,6 +58,8 @@ class MemberServiceImplTest {
         assertThat(findMember.getExp()).isEqualTo(0L);
         assertThat(findMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(findMember.getPartyInviteYn()).isEqualTo("Y");
+        assertThat(findMember.getMemberOtt().get(0).getOttView().getOttName()).isEqualTo("test");
+        assertThat(findMember.getMemberOtt().get(0).getOttView().getOttImage()).isEqualTo("test.image");
     }
 
     @Test
@@ -94,9 +105,11 @@ class MemberServiceImplTest {
     void 회원_추가_정보_저장_성공() {
         //given
         given(memberRepository.save(any())).willReturn(testMemberBuilder());
+        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(Optional.of(testOttView()));
+        given(memberOttRepository.saveAll(anyList())).willReturn(testMemberOtt());
 
-//        when
-        MemberDTO savedMember = memberService.saveMember(testMemberBuilder());
+        // when
+        MemberDTO savedMember = memberService.saveMember(testMemberBuilder(), testOttId());
 
         //then
         assertThat(savedMember.getMemberId()).isEqualTo("Test Id");
@@ -105,7 +118,8 @@ class MemberServiceImplTest {
         assertThat(savedMember.getExp()).isEqualTo(0L);
         assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(savedMember.getPartyInviteYn()).isEqualTo("Y");
-
+        assertThat(savedMember.getMemberOtt().get(0).getOttView().getOttName()).isEqualTo("test");
+        assertThat(savedMember.getMemberOtt().get(0).getOttView().getOttImage()).isEqualTo("test.image");
     }
 
     @Test
@@ -216,15 +230,22 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 정보 수정 성공")
     void 회원_정보_수정_성공() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(testMemberBuilder()));
+        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(updateMember()));
+        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(Optional.of(updateOttView()));
+
 
         // when
-        MemberDTO updatedMember = memberService.updateMember("Test Id", updateMember());
+        MemberDTO updatedMember = memberService.updateMember("Test Id", updateMember(), updateOttId());
 
         //then
         assertThat(updatedMember.getNickname()).isEqualTo("update nickname");
-//        assertThat(updatedMember.getOttView().size()).isEqualTo(0);
         assertThat(updatedMember.getPartyInviteYn()).isEqualTo("N");
+        assertThat(updatedMember.getExp()).isEqualTo(100L);
+        assertThat(updatedMember.getGrade()).isEqualTo(Grade.DIAMOND);
+        assertThat(updatedMember.getMemberOtt().get(0).getOttView().getOttName()).isEqualTo("test2");
+        assertThat(updatedMember.getMemberOtt().get(0).getOttView().getOttImage()).isEqualTo("test2.image");
+        assertThat(updatedMember.getMemberOtt().get(1).getOttView().getOttName()).isEqualTo("test3");
+        assertThat(updatedMember.getMemberOtt().get(1).getOttView().getOttImage()).isEqualTo("test3.image");
     }
 
     @Test
@@ -249,7 +270,7 @@ class MemberServiceImplTest {
 
         //then
         assertThat(updatedMember.getMemberId()).isEqualTo("Test Id");
-        assertThat(updatedMember.getGrade()).isEqualTo(Grade.SILVER);
+        assertThat(updatedMember.getGrade()).isEqualTo(Grade.DIAMOND);
     }
 
     @Test
@@ -288,7 +309,66 @@ class MemberServiceImplTest {
         assertThrows(NoSuchMemberException.class, () -> memberService.updateExp(memberId, testMemberBuilder()), "회원이 존재하지 않습니다.");
     }
 
+    private static List<Integer> testOttId() {
+        List<Integer> ottId = new ArrayList<>();
 
+        ottId.add(1);
+        return ottId;
+    }
+
+    private static List<Integer> updateOttId() {
+        List<Integer> ottId = new ArrayList<>();
+
+        ottId.add(2);
+        ottId.add(3);
+        return ottId;
+    }
+
+    private static List<OttView> testOttView() {
+        List<OttView> ottView = new ArrayList<>();
+        ottView.add(new OttView(1, "test", "test.image"));
+        return ottView;
+    }
+
+    private static List<OttView> updateOttView() {
+        List<OttView> ottView = new ArrayList<>();
+
+        ottView.add(new OttView(2, "test2", "test2.image"));
+        ottView.add(new OttView(3, "test3", "test3.image"));
+
+        return ottView;
+    }
+
+    private static List<MemberOtt> testMemberOtt() {
+        List<MemberOtt> memberOtt = new ArrayList<>();
+        Member testMember = Member.builder().memberId("Test Id")
+                .nickname("Test Nickname")
+                .grade(Grade.BRONZE)
+                .exp(0L)
+                .point(0L)
+                .partyInviteYn("Y")
+                .build();
+
+        memberOtt.add(MemberOtt.builder().member(testMember).ottView(new OttView(1, "test", "test.image")).build());
+
+        return memberOtt;
+    }
+
+    private static List<MemberOtt> updatedMemberOtt() {
+        List<MemberOtt> memberOtt = new ArrayList<>();
+        Member updatedMember = Member.builder().memberId("Test Id")
+                .nickname("update Nickname")
+                .grade(Grade.DIAMOND)
+                .exp(1000L)
+                .point(10000L)
+                .partyInviteYn("N")
+                .build();
+
+        memberOtt.add(MemberOtt.builder().member(updatedMember).ottView(new OttView(2, "test2", "test2.image")).build());
+        memberOtt.add(MemberOtt.builder().member(updatedMember).ottView(new OttView(3, "test3", "test3.image")).build());
+
+        return memberOtt;
+    }
 
     private static Member testMemberBuilder() {
         return Member.builder()
@@ -297,14 +377,14 @@ class MemberServiceImplTest {
                 .point(0L)
                 .exp(0L)
                 .grade(Grade.BRONZE)
+                .memberOtt(testMemberOtt())
                 .partyInviteYn("Y")
-//                .ottView(new ArrayList<>())
                 .build();
     }
 
-   private static List<Member> testMemberListBuilder() {
+    private static List<Member> testMemberListBuilder() {
         List<Member> members = new ArrayList<>();
-        for(int test = 0; test < 3; test ++) {
+        for (int test = 0; test < 3; test++) {
             Member member = Member.builder()
                     .memberId("Test Id" + test)
                     .nickname("Test Nickname" + test)
@@ -314,17 +394,17 @@ class MemberServiceImplTest {
                     .partyInviteYn("Y").build();
             members.add(member);
         }
-       return members;
-   }
+        return members;
+    }
 
-   private static Member updateMember() {
-       return Member.builder()
-               .memberId("Test Id")
-               .nickname("update nickname")
-               .point(0L)
-               .exp(100L)
-               .grade(Grade.SILVER)
-//               .ottView(new ArrayList<>())
-               .partyInviteYn("N").build();
-   }
+    private static Member updateMember() {
+        return Member.builder()
+                .memberId("Test Id")
+                .nickname("update nickname")
+                .point(0L)
+                .exp(100L)
+                .grade(Grade.DIAMOND)
+                .memberOtt(updatedMemberOtt())
+                .partyInviteYn("N").build();
+    }
 }

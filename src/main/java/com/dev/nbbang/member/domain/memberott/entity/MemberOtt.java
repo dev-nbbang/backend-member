@@ -40,10 +40,5 @@ public class MemberOtt {
         member.getMemberOtt().add(this);        // new HashSet<> 초기화가 되었는데 왜 안될지 - @Builder.Default
     }
 
-    // Member Ott 업데이트
-    public void updateMemberOtt(Member updatedMember, List<MemberOtt> memberOtt) {
-        updatedMember.getMemberOtt().clear();
-        updatedMember.getMemberOtt().addAll(memberOtt);
-    }
 }
 

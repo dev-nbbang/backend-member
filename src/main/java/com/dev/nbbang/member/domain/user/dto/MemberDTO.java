@@ -43,10 +43,10 @@ public class MemberDTO {
                 .build();
     }
 
-    public static List<MemberDTO> createList(List<Member> findMemberList) {
+    public static List<MemberDTO> createList(List<Member> memberList) {
         List<MemberDTO> memberDTOList = new ArrayList<>();
 
-        for (Member member : findMemberList) {
+        for (Member member : memberList) {
             memberDTOList.add(MemberDTO.builder().memberId(member.getMemberId())
                     .nickname(member.getNickname())
                     .bankId(member.getBankId())

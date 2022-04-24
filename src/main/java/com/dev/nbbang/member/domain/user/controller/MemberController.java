@@ -1,8 +1,10 @@
 package com.dev.nbbang.member.domain.user.controller;
 
 import com.dev.nbbang.member.domain.memberott.dto.MemberOttDTO;
+import com.dev.nbbang.member.domain.memberott.exception.NoCreatedMemberOtt;
 import com.dev.nbbang.member.domain.memberott.service.MemberOttService;
 import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
+import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.api.dto.AuthResponse;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
@@ -46,8 +48,6 @@ import java.util.*;
 @Tag(name = "Member", description = "Member API")
 public class MemberController {
     private final MemberService memberService;
-    private final OttViewService ottViewService;
-//    private final MemberOttService memberOttService;
     private final SocialTypeMatcher socialTypeMatcher;
     private final JwtUtil jwtUtil;
 
@@ -102,15 +102,6 @@ public class MemberController {
     @Operation(summary = "추가 회원 가입", description = "추가 회원 가입")
     public ResponseEntity<?> signUp(@RequestBody MemberRegisterRequest request, HttpServletResponse servletResponse) {
         try {
-            // OTT ID로 OTT 서비스 불러오기
-//            List<OttViewDTO> ottView = ottViewService.findAllByOttId(request.getOttId());
-
-            // 요청 데이터 엔티티에 저장
-//            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request));
-
-            // 관심 OTT 등록
-//            List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(savedMember.getMemberId(), request.getOttId());
-
             // 요청 데이터 엔티이에 저장
             MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request), request.getOttId());
 
@@ -120,7 +111,7 @@ public class MemberController {
             log.info("redis 저장 완료");
 
             return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true), HttpStatus.CREATED);
-        } catch (NoCreateMemberException e) {
+        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOtt e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
@@ -253,7 +244,7 @@ public class MemberController {
             // 회원 정보 불러오기
             MemberDTO findMember = memberService.findMember(memberId);
 
-            return new ResponseEntity<>(findMember, HttpStatus.OK);
+            return new ResponseEntity<>(MemberProfileResponse.create(findMember, true), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - getMemberProfile] : " + e.getMessage());
 
@@ -275,14 +266,6 @@ public class MemberController {
             // 회원 정보 수정
             MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request), request.getOttId());
 
-//            // 관심 OTT 수정 시 변경 (ottViewService.saveMemberOtt 이렇게 가야할듯)
-//            List<OttViewDTO> ottViewDTO = new ArrayList<>();
-//            // 관심 OTT 저장하기 (Ott 없는 경우 있음)
-//            for (int ottId : request.getOttId()) {
-//                // ott 내용 조회 Ott Service단으로 만들기
-//                ottViewDTO.add( ottViewService.findByOttId(ottId));
-//            }
-
             // 닉네임이 변경된 경우에만 JWT 토큰 새로 갱신 및 Redis에 리프레시 토큰 저장
             if (!findMember.getNickname().equals(updatedMember.getNickname())) {
                 String accessToken = memberService.manageToken(updatedMember);
@@ -290,7 +273,7 @@ public class MemberController {
             }
 
             return new ResponseEntity<>(MemberModifyResponse.create(updatedMember), HttpStatus.CREATED);
-        } catch (NoCreateMemberException e) {
+        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOtt e) {
             log.info(" >> [Nbbang Member Controller - modifyMemberProfile] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
@@ -298,7 +281,7 @@ public class MemberController {
 
     }
 
-    // 회원 탈퇴 아직 미완성
+    // 회원 탈퇴 추후 CASCADE 설정 및 소셜 로그아웃 구현 필요
     @DeleteMapping(value = "/profile")
     @Operation(description = "회원 탈퇴")
     public ResponseEntity<?> deleteMember(HttpServletRequest servletRequest) {

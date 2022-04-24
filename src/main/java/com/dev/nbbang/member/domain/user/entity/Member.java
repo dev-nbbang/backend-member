@@ -84,7 +84,10 @@ public class Member implements UserDetails {
         this.memberId = memberId;
         this.nickname = nickname;
         this.partyInviteYn = partyInviteYn;
-        this.memberOtt = memberOtt;
+
+        //  MEMBER_OTT 관계 제거 후 새로운 데이터 수정
+        this.memberOtt.clear();
+        this.memberOtt.addAll(memberOtt);
     }
 
     // 회원 경험치 변경

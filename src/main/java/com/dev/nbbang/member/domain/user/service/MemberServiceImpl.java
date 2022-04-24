@@ -2,6 +2,7 @@ package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.memberott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.memberott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.memberott.exception.NoCreatedMemberOtt;
 import com.dev.nbbang.member.domain.memberott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
@@ -55,6 +56,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberDTO findMember(String memberId) {
         Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+
         return MemberDTO.create(member);
     }
 
@@ -65,15 +67,7 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(member);
     }
 
-    // 추가 회원 정보 저장하기
-    @Override
-    @Transactional
-    public MemberDTO saveMember(Member member) {
-        Member savedMember = Optional.ofNullable(memberRepository.save(member)).orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
-
-        return MemberDTO.create(savedMember);
-    }
-
+    // 추가 회원 정보 저장 하기(Member_Ott 구분)
     @Override
     @Transactional
     public MemberDTO saveMember(Member member, List<Integer> ottId) {
@@ -90,22 +84,14 @@ public class MemberServiceImpl implements MemberService {
         for (MemberOtt memberOtt : memberOttList) {
             memberOtt.addMember(savedMember);
         }
-//        List<MemberOtt> savedMemberOtt = memberOttRepository.saveAll(memberOttList);
+
         // 5. 관심 OTT 저장
-        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList)).orElseThrow(() -> new NoSuchOttException("커스텀 예외 변동", NbbangException.NO_CREATE_MEMBER_OTT));
+        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList)).orElseThrow(() -> new NoCreatedMemberOtt("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
 
         return MemberDTO.create(savedMember);
     }
 
-    // 회원 정보 업데이트
-    @Override
-    @Transactional
-    public MemberDTO updateMember(String sessionMemberId, Member member) {
-        Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
-//        findMember.updateMember(findMember.getMemberId(),member.getNickname(),member.getPartyInviteYn());
-        return MemberDTO.create(findMember);
-    }
-
+    // 회원 정보 업데이트 (Member_Ott 구분)
     @Override
     @Transactional
     public MemberDTO updateMember(String sessionMemberId, Member member, List<Integer> ottId) {
@@ -116,17 +102,10 @@ public class MemberServiceImpl implements MemberService {
         List<OttView> updatedOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
 
         // 3. 회원으로 불러온 Member OTT 지워주기 (이부분 Member OTT 로 업데이트 확인하기)
-        System.out.println("updatedMember = " + updatedMember.getMemberOtt());
-        System.out.println("============================");
-        System.out.println("updatedMember = " + updatedMember.getMemberOtt().size());
-
-        updatedMember.getMemberOtt().clear();
-        System.out.println("============================");
-        System.out.println("updatedMember = " + updatedMember.getMemberOtt().size());
-        List<MemberOtt> updatedMemberOtt = memberOttRepository.saveAll(MemberOttDTO.toEntityList(updatedMember, updatedOttViews));
+        List<MemberOtt> updatedMemberOtt = MemberOttDTO.toEntityList(updatedMember, updatedOttViews);
 
         // 4. 회원 및 관심 OTT 관계 업데이트
-        updatedMember.updateMember(updatedMember.getMemberId(), member.getNickname(), member.getPartyInviteYn(),updatedMemberOtt);
+        updatedMember.updateMember(updatedMember.getMemberId(), member.getNickname(), member.getPartyInviteYn(), updatedMemberOtt);
 
         return MemberDTO.create(updatedMember);
     }
@@ -148,6 +127,7 @@ public class MemberServiceImpl implements MemberService {
 
     // 회원 탈퇴
     @Override
+    @Transactional
     public void deleteMember(String memberId) {
 
         if (memberId.length() < 1)
