@@ -83,8 +83,16 @@ public class MemberServiceImpl implements MemberService {
         // 2. OTT 찾기
         List<OttView> findOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
 
-        // 3. Member OTT 저장
-        List<MemberOtt> savedMemberOtt = memberOttRepository.saveAll(MemberOttDTO.toEntityList(savedMember, findOttViews));
+        // 3. MemberOtt 엔티티로 변경
+        List<MemberOtt> memberOttList = MemberOttDTO.toEntityList(savedMember, findOttViews);
+
+        // 4. 양방향 연관 관계 매핑 (회원 - 회원OTT 양방향 관계 매핑)
+        for (MemberOtt memberOtt : memberOttList) {
+            memberOtt.addMember(savedMember);
+        }
+//        List<MemberOtt> savedMemberOtt = memberOttRepository.saveAll(memberOttList);
+        // 5. 관심 OTT 저장
+        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList)).orElseThrow(() -> new NoSuchOttException("커스텀 예외 변동", NbbangException.NO_CREATE_MEMBER_OTT));
 
         return MemberDTO.create(savedMember);
     }
@@ -107,13 +115,17 @@ public class MemberServiceImpl implements MemberService {
         // 2. OTT 찾기 (회원 아이디를 가지고 getMemberOtt - list로 가져오기
         List<OttView> updatedOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
 
-        // 3. 회원으로 불러온 Member OTT 지워주기
+        // 3. 회원으로 불러온 Member OTT 지워주기 (이부분 Member OTT 로 업데이트 확인하기)
         System.out.println("updatedMember = " + updatedMember.getMemberOtt());
+        System.out.println("============================");
         System.out.println("updatedMember = " + updatedMember.getMemberOtt().size());
+
         updatedMember.getMemberOtt().clear();
+        System.out.println("============================");
+        System.out.println("updatedMember = " + updatedMember.getMemberOtt().size());
         List<MemberOtt> updatedMemberOtt = memberOttRepository.saveAll(MemberOttDTO.toEntityList(updatedMember, updatedOttViews));
 
-        // 4. 회원 및 관심 OTT 관계 추가
+        // 4. 회원 및 관심 OTT 관계 업데이트
         updatedMember.updateMember(updatedMember.getMemberId(), member.getNickname(), member.getPartyInviteYn(),updatedMemberOtt);
 
         return MemberDTO.create(updatedMember);

@@ -20,7 +20,7 @@ import java.util.List;
 public class MemberOtt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
+    @Column(name = "member_ott_id")
     private Long memberOttId;
 
     @ManyToOne
@@ -31,12 +31,19 @@ public class MemberOtt {
     @JoinColumn(name = "ott_id")
     private OttView ottView;
 
+    // 양방향 연관관계 매핑
     public void addMember(Member member) {
         if(this.member != null) {
             member.getMemberOtt().remove(this);
         }
         this.member = member;
         member.getMemberOtt().add(this);        // new HashSet<> 초기화가 되었는데 왜 안될지 - @Builder.Default
+    }
+
+    // Member Ott 업데이트
+    public void updateMemberOtt(Member updatedMember, List<MemberOtt> memberOtt) {
+        updatedMember.getMemberOtt().clear();
+        updatedMember.getMemberOtt().addAll(memberOtt);
     }
 }
 

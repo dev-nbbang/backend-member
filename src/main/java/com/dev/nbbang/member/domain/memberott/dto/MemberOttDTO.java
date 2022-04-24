@@ -41,11 +41,6 @@ public class MemberOttDTO {
             memberOttSet.add(MemberOtt.builder().member(member).ottView(ottView).build());
         }
 
-        // 회원 - 회원OTT 양방향 관계 매핑
-        for (MemberOtt memberOtt : memberOttSet) {
-            memberOtt.addMember(member);
-        }
-
         return memberOttSet;
 
     }
