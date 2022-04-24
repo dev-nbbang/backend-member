@@ -129,7 +129,7 @@ class MemberServiceImplTest {
         given(memberRepository.save(any())).willReturn(null);
 
         // when
-        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder()), "회원정보 저장에 실패했습니다.");
+        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder(), testOttId()), "회원정보 저장에 실패했습니다.");
     }
 
     @Test
@@ -256,7 +256,7 @@ class MemberServiceImplTest {
         String memberId = "wrong Id";
 
         // then
-        assertThrows(NoSuchMemberException.class, () -> memberService.updateMember(memberId, testMemberBuilder()), "회원이 존재하지 않습니다.");
+        assertThrows(NoSuchMemberException.class, () -> memberService.updateMember(memberId, testMemberBuilder(),updateOttId()), "회원이 존재하지 않습니다.");
     }
 
     @Test

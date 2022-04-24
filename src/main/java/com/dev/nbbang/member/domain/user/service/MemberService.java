@@ -45,5 +45,3 @@ public interface MemberService {
     // 토큰 관리
     String manageToken(MemberDTO member);
 }
-
-q

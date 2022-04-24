@@ -7,17 +7,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MemberOttRepository extends JpaRepository<MemberOtt, Long> {
-    // 관심 OTT 저장
-    MemberOtt save(MemberOtt memberOtt);
+    // 관심 OTT 저장 saveAll 사용
 
-//    @Override
-//    <S extends MemberOtt> List<S> saveAll(Iterable<S> entities);
+    // 관심 OTT 불러오기
+    Optional<List<MemberOtt>> findAllByMember(Member member);
 
-//    List<MemberOtt> saveAll(List<MemberOtt> memberOttList);
-    // 관심 OTT 삭제
+    // 관심 OTT 전체 삭제
     void deleteByMember(Member member);
 
+    // 관심 OTT 삭제
+    void deleteByMemberAndOttView(Member member, OttView ottView);
 }

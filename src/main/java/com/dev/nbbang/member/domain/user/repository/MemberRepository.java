@@ -25,7 +25,5 @@ public interface MemberRepository extends JpaRepository<Member, String> {
     // 회원 저장하기
     Member save(Member member);
 
-    // 테스트 회원 찾기 테스트 매핑 (JPQL)
-//    @Query("select m from Member as m INNER JOIN F")
 }
 
