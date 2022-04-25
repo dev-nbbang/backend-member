@@ -54,7 +54,8 @@ public class MemberServiceImpl implements MemberService {
     // 회원 아이디로 회원 찾기
     @Override
     public MemberDTO findMember(String memberId) {
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
 
         return MemberDTO.create(member);
     }
@@ -62,7 +63,8 @@ public class MemberServiceImpl implements MemberService {
     // 닉네임으로 회원 찾기
     @Override
     public MemberDTO findMemberByNickname(String nickname) {
-        Member member = memberRepository.findByNickname(nickname).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member member = Optional.ofNullable(memberRepository.findByNickname(nickname))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         return MemberDTO.create(member);
     }
 
@@ -71,7 +73,8 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDTO saveMember(Member member, List<Integer> ottId) {
         // 1. 회원 저장
-        Member savedMember = Optional.ofNullable(memberRepository.save(member)).orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
+        Member savedMember = Optional.ofNullable(memberRepository.save(member))
+                .orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
 
         // 2. OTT 찾기
         List<OttView> findOttViews = Optional.ofNullable(ottViewRepository.findAllByOttIdIn(ottId))
@@ -86,7 +89,8 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // 5. 관심 OTT 저장
-        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList)).orElseThrow(() -> new NoCreatedMemberOttException("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
+        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList))
+                .orElseThrow(() -> new NoCreatedMemberOttException("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
 
         return MemberDTO.create(savedMember);
     }
@@ -96,7 +100,8 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberDTO updateMember(String sessionMemberId, Member member, List<Integer> ottId) {
         // 1. 회원 찾기
-        Member updatedMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member updatedMember = Optional.ofNullable(memberRepository.findByMemberId(sessionMemberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
 
         // 2. OTT 찾기 (회원 아이디를 가지고 getMemberOtt - list로 가져오기
         List<OttView> updatedOttViews = Optional.ofNullable(ottViewRepository.findAllByOttIdIn(ottId))
@@ -121,8 +126,8 @@ public class MemberServiceImpl implements MemberService {
     //닉네임 리스트 가져오기
     @Override
     public List<MemberDTO> findMemberListByNickname(String nickname) {
-        List<Member> findMemberList = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseThrow(
-                () -> new NoSuchMemberException("해당 닉네임을 갖는 회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        List<Member> findMemberList = Optional.ofNullable(memberRepository.findTop5ByNicknameStartingWith(nickname))
+                .orElseThrow(() -> new NoSuchMemberException("해당 닉네임을 갖는 회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         return MemberDTO.createList(findMemberList);
     }
 
@@ -156,7 +161,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDTO updateGrade(String sessionMemberId, Member member) {
-        Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member findMember = Optional.ofNullable(memberRepository.findByMemberId(sessionMemberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateMember(findMember.getMemberId(), member.getGrade());
         return MemberDTO.create(findMember);
     }
@@ -165,7 +171,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDTO updateExp(String sessionMemberId, Member member) {
-        Member findMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member findMember = Optional.ofNullable(memberRepository.findByMemberId(sessionMemberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateMember(findMember.getMemberId(), member.getExp());
         return MemberDTO.create(findMember);
     }

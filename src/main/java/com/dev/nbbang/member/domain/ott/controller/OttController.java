@@ -2,7 +2,7 @@ package com.dev.nbbang.member.domain.ott.controller;
 
 import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
-import com.dev.nbbang.member.domain.ott.dto.request.MemberOttRegisterRequest;
+import com.dev.nbbang.member.domain.ott.dto.request.MemberOttRequest;
 import com.dev.nbbang.member.domain.ott.dto.response.MemberOttResponse;
 import com.dev.nbbang.member.domain.ott.exception.FailDeleteMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
@@ -39,7 +39,7 @@ public class OttController {
 
     @PostMapping(value = "/new")
     @Operation(summary = "관심 OTT 등록", description = "회원 아이디와 OTT ID를 받아 관심 OTT로 등록한다.")
-    public ResponseEntity<?> registerMemberOtt(@RequestBody MemberOttRegisterRequest request,  HttpServletRequest servletRequest) {
+    public ResponseEntity<?> registerMemberOtt(@RequestBody MemberOttRequest request, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 등록");
 
         try {

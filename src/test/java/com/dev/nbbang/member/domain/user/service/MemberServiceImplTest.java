@@ -46,7 +46,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 아이디로 회원 찾기 - 성공")
     void 아이디로_회원_찾기_성공() {
         //given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(testMemberBuilder()));
+        given(memberRepository.findByMemberId(anyString())).willReturn(testMemberBuilder());
 
         //when
         MemberDTO findMember = memberService.findMember("Test Id");
@@ -66,7 +66,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 아이디로 회원 찾기 - 실패")
     void 아이디로_회원_찾기_실패() {
         //given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findByMemberId(anyString())).willReturn(null);
 
         //when
         assertThrows(NoSuchMemberException.class, () -> memberService.findMember("Test Id"), "회원이 존재하지 않습니다.");
@@ -76,7 +76,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 닉네임으로 회원 찾기 - 성공")
     void 닉네임으로_회원_찾기_성공() {
         //given
-        given(memberRepository.findByNickname(anyString())).willReturn(Optional.of(testMemberBuilder()));
+        given(memberRepository.findByNickname(anyString())).willReturn(testMemberBuilder());
 
         //when
         MemberDTO findMember = memberService.findMemberByNickname("Test Nickname");
@@ -94,7 +94,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 닉네임으로 회원 찾기 - 실패")
     void 닉네임으로_회원_찾기_실패() {
         //given
-        given(memberRepository.findByNickname(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findByNickname(anyString())).willReturn(null);
 
         //then
         assertThrows(NoSuchMemberException.class, () -> memberService.findMemberByNickname("Test Nickname"), "회원이 존재하지 않습니다.");
@@ -136,7 +136,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 닉네임 중복 체크 - 성공")
     void 닉네임_중복_체크_성공() {
         // given
-        given(memberRepository.findByNickname(anyString())).willReturn(Optional.of(testMemberBuilder()));
+        given(memberRepository.findByNickname(anyString())).willReturn(testMemberBuilder());
 
         //when
         boolean isDuplicate = memberService.duplicateNickname("Test Nickname");
@@ -148,7 +148,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 닉네임 중복 체크 - 실패")
     void 닉네임_중복_체크_실패() {
         // given
-        given(memberRepository.findByNickname(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findByNickname(anyString())).willReturn(null);
 
         // when
         assertThrows(NoSuchMemberException.class, () -> memberService.duplicateNickname("Test Nickname"), "회원이 존재하지 않습니다.");
@@ -158,7 +158,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 비슷한 닉네임을 가지 회원 리스트 가져오기 - 성공")
     void 비슷한_닉네임을_가진_회원_리스트_가져오기_성공() {
         // given
-        given(memberRepository.findTop5ByNicknameStartingWith(anyString())).willReturn(Optional.of(testMemberListBuilder()));
+        given(memberRepository.findTop5ByNicknameStartingWith(anyString())).willReturn(testMemberListBuilder());
         String nickname = "Test";
 
         // when
@@ -175,7 +175,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 비슷한 닉네임을 가진 회원 리스트 가져오기 - 실패")
     void 비슷한_닉네임을_가진_회원_리스트_가져오기_실패() {
         // given
-        given(memberRepository.findTop5ByNicknameStartingWith(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findTop5ByNicknameStartingWith(anyString())).willReturn(null);
         String nickname = "nothing";
 
         // then
@@ -230,7 +230,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 정보 수정 성공")
     void 회원_정보_수정_성공() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(updateMember()));
+        given(memberRepository.findByMemberId(anyString())).willReturn(updateMember());
         given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(updateOttView());
 
 
@@ -252,7 +252,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 정보 수정 실패")
     void 회원_정보_수정_실패() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findByMemberId(anyString())).willReturn(null);
         String memberId = "wrong Id";
 
         // then
@@ -263,7 +263,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 등급 수정 성공")
     void 회원_등급_수정_성공() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(testMemberBuilder()));
+        given(memberRepository.findByMemberId(anyString())).willReturn(testMemberBuilder());
 
         // when
         MemberDTO updatedMember = memberService.updateGrade("Test Id", updateMember());
@@ -277,7 +277,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 등급 수정 실패")
     void 회원_등급_수정_실패() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findByMemberId(anyString())).willReturn(null);
         String memberId = "wrong Id";
 
         // then
@@ -288,7 +288,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 경험치 변경 성공")
     void 회원_경험치_변경_성공() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(testMemberBuilder()));
+        given(memberRepository.findByMemberId(anyString())).willReturn(testMemberBuilder());
 
         // when
         MemberDTO updatedMember = memberService.updateExp("Test Id", updateMember());
@@ -302,7 +302,7 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 경험치 변경 실패")
     void 회원_경험치_변경_실패() {
         // given
-        given(memberRepository.findByMemberId(anyString())).willReturn(Optional.empty());
+        given(memberRepository.findByMemberId(anyString())).willReturn(null);
         String memberId = "wrong Id";
 
         // then
