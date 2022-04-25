@@ -14,7 +14,10 @@ public interface MemberOttRepository extends JpaRepository<MemberOtt, Long> {
     // 관심 OTT 저장 saveAll 사용
 
     // 관심 OTT 불러오기
-    Optional<List<MemberOtt>> findAllByMember(Member member);
+    List<MemberOtt> findAllByMember(Member member);
+
+    // 관심 OTT 불러오기 (회원, OTT를 이용해)
+    MemberOtt findMemberOttByMemberAndOttView(Member member, OttView ottView);
 
     // 관심 OTT 전체 삭제
     void deleteByMember(Member member);

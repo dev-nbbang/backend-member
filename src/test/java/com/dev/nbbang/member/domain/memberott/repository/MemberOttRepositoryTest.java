@@ -63,7 +63,7 @@ class MemberOttRepositoryTest {
         Member member = testMember();
 
         // when
-        List<MemberOtt> findMemberOtt = memberOttRepository.findAllByMember(member).orElseGet(ArrayList::new);
+        List<MemberOtt> findMemberOtt = memberOttRepository.findAllByMember(member);
 
         // then
         assertThat(findMemberOtt.size()).isEqualTo(2);
@@ -82,11 +82,11 @@ class MemberOttRepositoryTest {
         Member member = Member.builder().memberId("new").nickname("new").build();
 
         //then
-        Optional<List<MemberOtt>> findMemberOtt = memberOttRepository.findAllByMember(member);
+        List<MemberOtt> findMemberOtt = memberOttRepository.findAllByMember(member);
 
         //when
-        assertThat(findMemberOtt.isPresent()).isTrue();
-        assertThat(findMemberOtt.get()).isEqualTo(Collections.emptyList());
+        assertThat(findMemberOtt.isEmpty()).isTrue();
+        assertThat(findMemberOtt).isEqualTo(Collections.emptyList());
     }
 
     @Test
@@ -97,11 +97,11 @@ class MemberOttRepositoryTest {
 
         // when
         memberOttRepository.deleteByMember(member);
-        Optional<List<MemberOtt>> findMemberOtt = memberOttRepository.findAllByMember(member);
+        List<MemberOtt> findMemberOtt = memberOttRepository.findAllByMember(member);
 
         // then
-        assertThat(findMemberOtt.isPresent()).isTrue();
-        assertEquals(findMemberOtt.get(), Collections.emptyList());
+        assertThat(findMemberOtt.isEmpty()).isTrue();
+        assertThat(findMemberOtt).isEqualTo(Collections.emptyList());
     }
 
 
@@ -118,11 +118,30 @@ class MemberOttRepositoryTest {
 
         // when
         memberOttRepository.deleteByMemberAndOttView(member, ottView);
-        Optional<List<MemberOtt>> findMemberOtt = memberOttRepository.findAllByMember(member);
+        List<MemberOtt> findMemberOtt = memberOttRepository.findAllByMember(member);
 
         //then
-        assertThat(findMemberOtt.isPresent()).isTrue();
-        assertEquals(findMemberOtt.get().size(),1);
+        assertThat(findMemberOtt.isEmpty()).isFalse();
+        assertThat(findMemberOtt.size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("관심 OTT 레포지토리 : 회원 아이디, Ott ID로 관심 OTT 등록여부 판단 성공")
+    void 관심_OTT_등록여부_판단_성공() {
+        // given
+        Member member = testMember();
+        OttView ottView = OttView.builder()
+                .ottId(1)
+                .ottName("test1")
+                .ottImage("test1.com")
+                .build();
+
+        // when
+        MemberOtt findMemberOtt = memberOttRepository.findMemberOttByMemberAndOttView(member, ottView);
+
+        //then
+        assertThat(findMemberOtt).isNull();
+
     }
 
     private static List<MemberOtt> testMemberOtt(){

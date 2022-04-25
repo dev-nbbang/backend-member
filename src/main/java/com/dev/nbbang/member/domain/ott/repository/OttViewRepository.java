@@ -9,8 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface OttViewRepository extends JpaRepository<OttView, Integer> {
-    Optional<OttView> findByOttId(int ottId);
+    // OTT 아이디를 통해 OTT 서비스 찾기
+    OttView findByOttId(int ottId);
 
-    Optional<List<OttView>> findAllByOttIdIn(List<Integer> ottId);
+    // OTT 아이디 리스트를 통해 한번에 찾기
+    List<OttView> findAllByOttIdIn(List<Integer> ottId);
 
 }

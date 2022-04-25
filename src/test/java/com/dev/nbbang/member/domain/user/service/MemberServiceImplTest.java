@@ -105,7 +105,7 @@ class MemberServiceImplTest {
     void 회원_추가_정보_저장_성공() {
         //given
         given(memberRepository.save(any())).willReturn(testMemberBuilder());
-        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(Optional.of(testOttView()));
+        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(testOttView());
         given(memberOttRepository.saveAll(anyList())).willReturn(testMemberOtt());
 
         // when
@@ -231,7 +231,7 @@ class MemberServiceImplTest {
     void 회원_정보_수정_성공() {
         // given
         given(memberRepository.findByMemberId(anyString())).willReturn(Optional.of(updateMember()));
-        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(Optional.of(updateOttView()));
+        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(updateOttView());
 
 
         // when

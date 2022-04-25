@@ -13,6 +13,8 @@ import javax.persistence.Table;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "OTTVIEW")
 public class OttView {
     @Id

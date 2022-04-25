@@ -2,7 +2,7 @@ package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOtt;
+import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
@@ -74,7 +74,8 @@ public class MemberServiceImpl implements MemberService {
         Member savedMember = Optional.ofNullable(memberRepository.save(member)).orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
 
         // 2. OTT 찾기
-        List<OttView> findOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
+        List<OttView> findOttViews = Optional.ofNullable(ottViewRepository.findAllByOttIdIn(ottId))
+                .orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
 
         // 3. MemberOtt 엔티티로 변경
         List<MemberOtt> memberOttList = MemberOttDTO.toEntityList(savedMember, findOttViews);
@@ -85,7 +86,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // 5. 관심 OTT 저장
-        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList)).orElseThrow(() -> new NoCreatedMemberOtt("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
+        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList)).orElseThrow(() -> new NoCreatedMemberOttException("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
 
         return MemberDTO.create(savedMember);
     }
@@ -98,7 +99,8 @@ public class MemberServiceImpl implements MemberService {
         Member updatedMember = memberRepository.findByMemberId(sessionMemberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
 
         // 2. OTT 찾기 (회원 아이디를 가지고 getMemberOtt - list로 가져오기
-        List<OttView> updatedOttViews = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
+        List<OttView> updatedOttViews = Optional.ofNullable(ottViewRepository.findAllByOttIdIn(ottId))
+                .orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
 
         // 3. 회원으로 불러온 Member OTT 지워주기 (이부분 Member OTT 로 업데이트 확인하기)
         List<MemberOtt> updatedMemberOtt = MemberOttDTO.toEntityList(updatedMember, updatedOttViews);

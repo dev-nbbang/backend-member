@@ -1,6 +1,6 @@
 package com.dev.nbbang.member.domain.user.controller;
 
-import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOtt;
+import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.api.dto.AuthResponse;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
@@ -106,7 +106,7 @@ public class MemberController {
             log.info("redis 저장 완료");
 
             return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true), HttpStatus.CREATED);
-        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOtt e) {
+        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
@@ -268,7 +268,7 @@ public class MemberController {
             }
 
             return new ResponseEntity<>(MemberModifyResponse.create(updatedMember), HttpStatus.CREATED);
-        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOtt e) {
+        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - modifyMemberProfile] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);

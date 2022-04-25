@@ -9,22 +9,32 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class OttViewServiceImpl implements OttViewService{
     private final OttViewRepository ottViewRepository;
 
+    // OTT ID로 OTT 서비스 조회하기
     @Override
     public OttViewDTO findByOttId(int ottId) {
-        OttView ottView = ottViewRepository.findByOttId(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 서비스 입니다.", NbbangException.NOT_FOUND_OTT));
+        OttView ottView = Optional.ofNullable(ottViewRepository.findByOttId(ottId)).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 서비스 입니다.", NbbangException.NOT_FOUND_OTT));
         return OttViewDTO.create(ottView);
     }
 
-    // OTT ID로 OTT 불러오기
+    // OTT ID 리스트로 OTT 서비스 조회하기
     @Override
     public List<OttViewDTO> findAllByOttId(List<Integer> ottId) {
-        List<OttView> ottView = ottViewRepository.findAllByOttIdIn(ottId).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 서비스 입니다.", NbbangException.NOT_FOUND_OTT));
+        List<OttView> ottView = Optional.ofNullable(ottViewRepository.findAllByOttIdIn(ottId)).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 서비스 입니다.", NbbangException.NOT_FOUND_OTT));
         return OttViewDTO.createList(ottView);
+    }
+
+    // 모든 OTT 서비스 조회하기
+    @Override
+    public List<OttViewDTO> findAll() {
+        List<OttView> findOttView = Optional.of(ottViewRepository.findAll()).orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 서비스 입니다.", NbbangException.NOT_FOUND_OTT));
+
+        return OttViewDTO.createList(findOttView);
     }
 }

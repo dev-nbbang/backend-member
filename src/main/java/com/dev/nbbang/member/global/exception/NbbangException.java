@@ -9,7 +9,8 @@ public enum NbbangException {
     ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),
     NOT_FOUND_OTT("BE301", "No Such a Ott"),
     NO_CREATE_MEMBER_OTT("BE302", "Doesn't create Member interest Ott"),
-    NOT_FOUND_MEMBER_OTT("BE303", "No Such A MEmber Ott"),;
+    NOT_FOUND_MEMBER_OTT("BE303", "No Such A Member Ott"),
+    FAIL_TO_DELETE_MEMBER_OTT("BE304", "Fail To Delete Member Ott");
     private String code;
     private String message;
 
