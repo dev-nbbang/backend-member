@@ -4,10 +4,9 @@ package com.dev.nbbang.member.domain.user.service;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface MemberService {
     // 소셜 로그인 시도
@@ -20,10 +19,10 @@ public interface MemberService {
     MemberDTO findMemberByNickname(String nickname);
 
     // 회원 추가 정보 저장
-    MemberDTO saveMember(Member member);
+    MemberDTO saveMember(Member member, List<Integer> ottId);
 
-    // 회원 정보 수정
-    MemberDTO updateMember(String memberId, Member member);
+    // 회원 프로필 수정
+    MemberDTO updateMember(String memberId, Member member, List<Integer> ottId);
 
     // 닉네임 중복 체크
     boolean duplicateNickname(String nickname);
@@ -45,7 +44,4 @@ public interface MemberService {
 
     // 토큰 관리
     String manageToken(MemberDTO member);
-
-    OTTView findByOttId(int ottId);
-
 }

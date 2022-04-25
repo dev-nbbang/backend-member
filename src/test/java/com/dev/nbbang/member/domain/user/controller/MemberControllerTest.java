@@ -1,5 +1,7 @@
 package com.dev.nbbang.member.domain.user.controller;
 
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.api.exception.IllegalSocialTypeException;
 import com.dev.nbbang.member.domain.user.api.util.KakaoAuthUrl;
 import com.dev.nbbang.member.domain.user.api.util.SocialAuthUrl;
@@ -9,20 +11,16 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
-import com.dev.nbbang.member.domain.user.dto.response.MemberNicknameResponse;
-import com.dev.nbbang.member.domain.user.dto.response.MemberRegisterResponse;
 import com.dev.nbbang.member.domain.user.entity.Grade;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
+import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.config.SecurityConfig;
 import com.dev.nbbang.member.global.util.JwtUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,16 +32,11 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +60,8 @@ class MemberControllerTest {
     @MockBean
     private MemberService memberService;
 
+    @MockBean
+    private OttViewService ottViewService;
     @MockBean
     private SocialTypeMatcher socialTypeMatcher;
 
@@ -187,8 +182,8 @@ class MemberControllerTest {
     void 추가_회원_가입_실패() throws Exception {
         // given
         String uri = "/members/new";
-        given(memberService.findByOttId(anyInt())).willReturn(new OTTView(1, "test", "test.image"));
-        given(memberService.saveMember(any())).willThrow(NoCreateMemberException.class);
+//        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
+        given(memberService.saveMember(any(), anyList())).willThrow(NoCreateMemberException.class);
 
         //when
         MockHttpServletResponse response = mvc.perform(
@@ -210,9 +205,11 @@ class MemberControllerTest {
     void 추가_회원_가입_성공() throws Exception {
         // given
         String uri = "/members/new";
-        given(memberService.findByOttId(anyInt())).willReturn(new OTTView(1, "test", "test.image"));
-        given(memberService.saveMember(any())).willReturn(testMemberDTO());
+//        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
+//        given(memberService.saveMember(any())).willReturn(testMemberDTO());
+        given(memberService.saveMember(any(), anyList())).willReturn(testMemberDTO());
         given(memberService.manageToken(any())).willReturn("new Token");
+
 
         //when
         MockHttpServletResponse response = mvc.perform(
@@ -528,8 +525,8 @@ class MemberControllerTest {
         // given
         String uri = "/members/profile";
         given(jwtUtil.getUserid(anyString())).willReturn("testId");
-        given(memberService.updateMember(anyString(), any())).willReturn(updatedMemberDTO());
         given(memberService.findMember(anyString())).willReturn(testMemberDTO());
+        given(memberService.updateMember(anyString(), any(), anyList())).willReturn(updatedMemberDTO());
         given(memberService.manageToken(any())).willReturn("update token");
 
         //when
@@ -540,9 +537,12 @@ class MemberControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("testId"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.nickname").value("updateNickname"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottId").value(1))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottName").value("test"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottImage").value("test.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottId").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottName").value("test2"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottImage").value("test2.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottId").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottName").value("test3"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottImage").value("test3.image"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.partyInviteYn").value("N"))
                 .andDo(print())
                 .andReturn().getResponse();
@@ -558,7 +558,7 @@ class MemberControllerTest {
         //given
         String uri = "/members/profile";
         given(jwtUtil.getUserid(anyString())).willReturn("testId");
-        given(memberService.updateMember(anyString(), any())).willThrow(NoCreateMemberException.class);
+        given(memberService.updateMember(anyString(), any(), anyList())).willThrow(NoCreateMemberException.class);
 
         //when
         MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
@@ -614,16 +614,25 @@ class MemberControllerTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
-    private static List<OTTView> testOttView() {
-        List<OTTView> ottView = new ArrayList<>();
-        ottView.add(new OTTView(1, "test", "test.image"));
-        return ottView;
+    private static List<MemberOtt> testMemberOtt() {
+        List<MemberOtt> memberOtt = new ArrayList<>();
+        Member testMember = Member.builder().memberId("testId")
+                .nickname("testNickname")
+                .grade(Grade.BRONZE)
+                .exp(0L)
+                .point(0L)
+                .partyInviteYn("Y")
+                .build();
+
+        memberOtt.add(MemberOtt.builder().member(testMember).ottView(new OttView(1, "test", "test.image")).build());
+
+        return memberOtt;
     }
 
     private static MemberDTO testMemberDTO() {
         return MemberDTO.builder().memberId("testId")
                 .nickname("testNickname")
-                .ottView(testOttView())
+                .memberOtt(testMemberOtt())
                 .grade(Grade.BRONZE)
                 .exp(0L)
                 .point(0L)
@@ -635,12 +644,28 @@ class MemberControllerTest {
         return MemberDTO.builder()
                 .memberId("testId")
                 .nickname("updateNickname")
-                .ottView(testOttView())
+                .memberOtt(updatedMemberOtt())
                 .grade(Grade.DIAMOND)
                 .exp(100L)
                 .point(10000L)
                 .partyInviteYn("N")
                 .build();
+    }
+
+    private static List<MemberOtt> updatedMemberOtt() {
+        List<MemberOtt> memberOtt = new ArrayList<>();
+        Member updatedMember = Member.builder().memberId("testId")
+                .nickname("updatedNickname")
+                .grade(Grade.DIAMOND)
+                .exp(1000L)
+                .point(10000L)
+                .partyInviteYn("N")
+                .build();
+
+        memberOtt.add(MemberOtt.builder().member(updatedMember).ottView(new OttView(2, "test2", "test2.image")).build());
+        memberOtt.add(MemberOtt.builder().member(updatedMember).ottView(new OttView(3, "test3", "test3.image")).build());
+
+        return memberOtt;
     }
 
     private static List<MemberDTO> testMemberDTOlist() {
@@ -673,7 +698,8 @@ class MemberControllerTest {
 
     private static MemberModifyRequest testMemberModifyRequest() {
         List<Integer> ottId = new ArrayList<>();
-        ottId.add(1);
+        ottId.add(2);
+        ottId.add(3);
         return MemberModifyRequest.builder()
                 .memberId("testId")
                 .nickname("updateNickname")

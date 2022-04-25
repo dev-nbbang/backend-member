@@ -1,8 +1,8 @@
 package com.dev.nbbang.member.domain.user.dto;
 
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +25,7 @@ public class MemberDTO {
     private Long exp;
     private String billingKey;
     private String partyInviteYn;
-    private List<OTTView> ottView;
+    private List<MemberOtt> memberOtt;
 
     public static MemberDTO create(Member member) {
         return MemberDTO.builder().memberId(member.getMemberId())
@@ -37,13 +37,14 @@ public class MemberDTO {
                 .exp(member.getExp())
                 .billingKey(member.getBillingKey())
                 .partyInviteYn(member.getPartyInviteYn())
-                .ottView(member.getOttView()).build();
+                .memberOtt(member.getMemberOtt())
+                .build();
     }
 
-    public static List<MemberDTO> createList(List<Member> findMemberList) {
+    public static List<MemberDTO> createList(List<Member> memberList) {
         List<MemberDTO> memberDTOList = new ArrayList<>();
 
-        for (Member member : findMemberList) {
+        for (Member member : memberList) {
             memberDTOList.add(MemberDTO.builder().memberId(member.getMemberId())
                     .nickname(member.getNickname())
                     .bankId(member.getBankId())
@@ -53,7 +54,8 @@ public class MemberDTO {
                     .exp(member.getExp())
                     .billingKey(member.getBillingKey())
                     .partyInviteYn(member.getPartyInviteYn())
-                    .ottView(member.getOttView()).build());
+                    .memberOtt(member.getMemberOtt())
+                    .build());
         }
 
         return memberDTOList;

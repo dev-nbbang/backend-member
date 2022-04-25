@@ -1,29 +1,26 @@
 package com.dev.nbbang.member.domain.user.entity;
 
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@ToString
 @DynamicInsert
 @DynamicUpdate
 @AllArgsConstructor
 @Builder
 @Table(name = "MEMBER")
+@EqualsAndHashCode
 public class Member implements UserDetails {
     @Id
     @Column(name = "MEMBER_ID", nullable = false)
@@ -54,11 +51,16 @@ public class Member implements UserDetails {
     @Column(name = "party_invite_yn")
     private String partyInviteYn;
 
-    @ManyToMany
-    @JoinTable(name = "MEMBER_OTT",
-            joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "ott_id"))
-    private List<OTTView> ottView;
+    // 양방향 조회 안되는 이유 찾기
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default        //NPE 해결
+    private List<MemberOtt> memberOtt = new ArrayList<>();
+
+//    @ManyToMany
+//    @JoinTable(name = "MEMBER_OTT",
+//            joinColumns = @JoinColumn(name = "member_id"),
+//            inverseJoinColumns = @JoinColumn(name = "ott_id"))
+//    private List<OttView> ottView = new ArrayList<>();
 
     @PrePersist
     private void prePersist() {
@@ -77,11 +79,14 @@ public class Member implements UserDetails {
     }
 
     // 회원 정보 수정
-    public void updateMember(String memberId, String nickname, List<OTTView> ottView, String partyInviteYn) {
+    public void updateMember(String memberId, String nickname, String partyInviteYn, List<MemberOtt> memberOtt) {
         this.memberId = memberId;
         this.nickname = nickname;
-        this.ottView = ottView;
         this.partyInviteYn = partyInviteYn;
+
+        //  MEMBER_OTT 관계 제거 후 새로운 데이터 수정
+        this.memberOtt.clear();
+        this.memberOtt.addAll(memberOtt);
     }
 
     // 회원 경험치 변경

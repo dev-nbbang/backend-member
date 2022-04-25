@@ -2,7 +2,7 @@ package com.dev.nbbang.member.domain.user.repository;
 
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,13 +81,14 @@ class MemberRepositoryTest {
     @DisplayName("회원 레포지토리 : 회원가입, 추가 회원정보 저장/관심 OTT 있는 경우 - 성공")
     void 회원가입_추가_회원정보_저장_관심OTT_있는_경우_성공() {
         //given
-        List<OTTView> ottViewList = new ArrayList<>();
-        ottViewList.add(OTTView.builder().ottId(1).build());
+        List<OttView> ottViewList = new ArrayList<>();
+        ottViewList.add(OttView.builder().ottId(1).build());
 
         final Member member = Member.builder()
                 .memberId("TestIds")
                 .nickname("TestMemberA")
-                .ottView(ottViewList).build();
+                .build();
+//                .ottView(ottViewList).build();
 
         //when
         Member savedMember = memberRepository.save(member);
@@ -95,7 +96,7 @@ class MemberRepositoryTest {
         //then
         assertThat(savedMember.getMemberId()).isEqualTo(member.getMemberId());
         assertThat(savedMember.getNickname()).isEqualTo(member.getNickname());
-        assertThat(savedMember.getOttView().size()).isEqualTo(member.getOttView().size());
+//        assertThat(savedMember.getOttView().size()).isEqualTo(member.getOttView().size());
         assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(savedMember.getPoint()).isEqualTo(0);
         assertThat(savedMember.getExp()).isEqualTo(0);
@@ -108,9 +109,9 @@ class MemberRepositoryTest {
         //given
         final Member member = Member.builder()
                 .memberId("Test Id")
-                .nickname("맹준")
-                .ottView(new ArrayList<>())
-                .build();
+                .nickname("맹준").build();
+//                .ottView(new ArrayList<>())
+//                .build();
 
         //when
         Member savedMember = memberRepository.save(member);
