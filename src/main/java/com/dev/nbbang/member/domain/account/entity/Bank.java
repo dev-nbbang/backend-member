@@ -13,7 +13,6 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@DynamicUpdate
 @Table(name = "BANK")
 public class Bank {
     @Id

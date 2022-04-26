@@ -2,6 +2,10 @@ package com.dev.nbbang.member.domain.account.api.service;
 
 import com.dev.nbbang.member.domain.account.api.dto.request.ImpToken;
 import com.dev.nbbang.member.domain.account.dto.request.CardRequest;
+import com.dev.nbbang.member.domain.account.exception.FailDeleteBillingKeyException;
+import com.dev.nbbang.member.domain.account.exception.FailImportServerException;
+import com.dev.nbbang.member.domain.account.exception.FailIssueBillingKeyException;
+import com.dev.nbbang.member.global.exception.NbbangException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +35,7 @@ public class ImportAPI {
     @Value("${imp.client.secret}")
     private String impSecret;
 
-    public String getAccessToken() throws Exception {
+    public String getAccessToken() {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
 
@@ -52,10 +56,10 @@ public class ImportAPI {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        throw new Exception("server 접근 실패");
+        throw new FailImportServerException("server 접근 실패", NbbangException.FAIL_TO_IMPORT_SERVER);
     }
 
-    public String getBillingKey(String accessToken, CardRequest card, String memberId) throws Exception {
+    public String getBillingKey(String accessToken, CardRequest card, String memberId) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.add("Authorization", accessToken);
@@ -74,16 +78,16 @@ public class ImportAPI {
                 ObjectMapper mapper = new ObjectMapper();
                 Map<String, Object> map = mapper.readValue(impResponse.getBody(), Map.class);
                 log.info(map.toString());
-                if(!map.get("code").toString().equals("0")) throw new Exception("billingKey 발급 실패");
+                if(!map.get("code").toString().equals("0")) throw new FailIssueBillingKeyException("errorCode: " + map.get("code").toString() + "billingKey 발급 실패", NbbangException.FAIL_TO_ISSUE_BILLINGKEY);
                 return cutomerUid;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        throw new Exception("billingKey 발급 실패");
+        throw new FailIssueBillingKeyException("빌링키 발급 실패", NbbangException.FAIL_TO_ISSUE_BILLINGKEY);
     }
 
-    public void deleteBillingKey(String accessToken, String customerUid) throws Exception {
+    public void deleteBillingKey(String accessToken, String customerUid) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", accessToken);
 
@@ -94,11 +98,12 @@ public class ImportAPI {
             ResponseEntity<String> impResponse = restTemplate.exchange(uri, HttpMethod.DELETE, impRequest, String.class);
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> map = mapper.readValue(impResponse.getBody(), Map.class);
-            if(!map.get("code").toString().equals("0")) throw new Exception("errorCode: " + map.get("code").toString() +"billingKey 삭제 실패");
+            if(!map.get("code").toString().equals("0")) throw new FailDeleteBillingKeyException("errorCode: " + map.get("code").toString() + "billingKey 삭제 실패", NbbangException.FAIL_TO_DELETE_BILLINGKEY);
         } catch (IOException e) {
             e.printStackTrace();
+            throw new FailDeleteBillingKeyException("billingKey 삭제 실패", NbbangException.FAIL_TO_DELETE_BILLINGKEY);
         }
-        throw new Exception("billingKey 삭제 실패");
+
     }
 
     public String randomString() {

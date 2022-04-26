@@ -1,5 +1,6 @@
 package com.dev.nbbang.member.domain.user.entity;
 
+import com.dev.nbbang.member.domain.coupon.entity.MemberCoupon;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
@@ -57,6 +58,10 @@ public class Member implements UserDetails {
             joinColumns = @JoinColumn(name = "member_id"),
             inverseJoinColumns = @JoinColumn(name = "ott_id"))
     private List<OTTView> ottView;
+
+    @OneToMany(mappedBy = "member")
+    @Builder.Default
+    private List<MemberCoupon> memberCouponList = new ArrayList<>();
 
     @PrePersist
     private void prePersist() {

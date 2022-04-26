@@ -7,6 +7,6 @@ import java.util.List;
 public interface AccountService {
     Bank findByBankId(int bankId);
     List<Bank> findAll();
-    String encrypt(String text) throws Exception;
-    String decrypt(String cipherText) throws Exception;
+    String encrypt(String text);
+    String decrypt(String cipherText);
 }

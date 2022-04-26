@@ -1,13 +1,18 @@
 package com.dev.nbbang.member.domain.account.controller;
 
 import com.dev.nbbang.member.domain.account.dto.request.AccountRequest;
+import com.dev.nbbang.member.domain.account.dto.response.AccountResponse;
+import com.dev.nbbang.member.domain.account.dto.response.BankListResponse;
+import com.dev.nbbang.member.domain.account.dto.response.BillingKeyResponse;
 import com.dev.nbbang.member.domain.account.entity.Bank;
+import com.dev.nbbang.member.domain.account.exception.*;
 import com.dev.nbbang.member.domain.account.service.AccountService;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.account.api.service.ImportAPI;
 import com.dev.nbbang.member.domain.account.dto.request.CardRequest;
 import com.dev.nbbang.member.domain.user.service.MemberService;
+import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @CrossOrigin
@@ -37,20 +40,21 @@ public class AccountController {
     public ResponseEntity<?> accountCheck(HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        System.out.println(memberId);
-        Map<String, Object> result = new HashMap<>();
+        String msg = "";
         try {
             MemberDTO member = memberService.findMember(memberId);
-            String bankAccount = accountService.decrypt(member.getBankAccount());
-            result.put("bankAccount", bankAccount);
-            result.put("status", true);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch (Exception e){
+            if(member.getBankId()!=null && member.getBankAccount()!=null) {
+                Bank bank = accountService.findByBankId(member.getBankId());
+                String bankAccount = accountService.decrypt(member.getBankAccount());
+                return new ResponseEntity<>(AccountResponse.create(bank, bankAccount), HttpStatus.OK);
+            } else {
+                msg = "현재 계좌 정보가 없습니다";
+                log.info(msg);
+            }
+        } catch (NoSuchMemberException | FailDecryptException e){
             log.info(e.getMessage());
-            log.info("회원정보 없음");
-            result.put("status", false);
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(CommonStatusResponse.create(false), HttpStatus.OK);
     }
 
     @PostMapping("/new")
@@ -58,18 +62,16 @@ public class AccountController {
     public ResponseEntity<?> accountRegister(@RequestBody AccountRequest accountRequest, HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
+        boolean status = false;
         try {
             String bankAccountEnc = accountService.encrypt(accountRequest.getBankAccount());
             accountRequest.encBankAccount(bankAccountEnc);
-        } catch (Exception e) {
-            e.printStackTrace();
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
+            status = true;
+        } catch (FailEncryptException | NoSuchMemberException e) {
+            log.info(e.getMessage());
         }
-        memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
     }
 
     @PutMapping("/")
@@ -77,18 +79,16 @@ public class AccountController {
     public ResponseEntity<?> accountUpdate(@RequestBody AccountRequest accountRequest, HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
+        boolean status = false;
         try {
             String bankAccountEnc = accountService.encrypt(accountRequest.getBankAccount());
             accountRequest.encBankAccount(bankAccountEnc);
-        } catch (Exception e) {
-            e.printStackTrace();
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
+            status = true;
+        } catch (FailEncryptException | NoSuchMemberException e) {
+            log.info(e.getMessage());
         }
-        memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
     }
 
     @DeleteMapping("/")
@@ -96,10 +96,14 @@ public class AccountController {
     public ResponseEntity<?> accountDelete(HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
-        memberService.deleteAccount(memberId);
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        boolean status = false;
+        try {
+            memberService.deleteAccount(memberId);
+            status = true;
+        } catch (NoSuchMemberException e) {
+            log.info(e.getMessage());
+        }
+        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
     }
 
     @GetMapping("/billing")
@@ -107,22 +111,16 @@ public class AccountController {
     public ResponseEntity<?> billingKeyCheck(HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
         try {
             MemberDTO member = memberService.findMember(memberId);
             if(member.getBillingKey() != null) {
-                result.put("billingKey", member.getBillingKey());
-                result.put("status", true);
-            } else {
-                result.put("status", false);
+                String biilingKey = accountService.decrypt(member.getBillingKey());
+                return new ResponseEntity<>(BillingKeyResponse.create(biilingKey), HttpStatus.OK);
             }
-            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (NoSuchMemberException e){
             log.info(e.getMessage());
-            log.info("회원정보 없음");
-            result.put("status", false);
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(CommonStatusResponse.create(false), HttpStatus.OK);
     }
 
     @PostMapping("/billing/new")
@@ -130,26 +128,19 @@ public class AccountController {
     public ResponseEntity<?> billingKeyRegister(@RequestBody CardRequest card, HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
         String accessToken, billingKey, billingKeyEnc;
+        boolean status = false;
         try {
             accessToken = importAPI.getAccessToken();
-        } catch (Exception e) {
-            log.info("error: " + e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        try {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
-        } catch (Exception e) {
+            memberService.updateBillingKey(memberId, billingKeyEnc);
+            status = true;
+        } catch (FailImportServerException | FailIssueBillingKeyException | FailEncryptException | NoSuchMemberException e) {
             log.info("error: " + e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
         }
-        memberService.updateBillingKey(memberId, billingKeyEnc);
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+
+        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
     }
 
     @PutMapping("/billing")
@@ -157,43 +148,22 @@ public class AccountController {
     public ResponseEntity<?> billingKeyUpdate(@RequestBody CardRequest card, HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
         String accessToken, billingKey, billingKeyEnc, customerUidEnc, customerUid;
+        boolean status = false;
         try {
             accessToken = importAPI.getAccessToken();
-        } catch (Exception e) {
-            log.info("error: " + e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        try {
             MemberDTO member = memberService.findMember(memberId);
             customerUidEnc = member.getBillingKey();
             customerUid = accountService.decrypt(customerUidEnc);
-        } catch (Exception e){
-            log.info(e.getMessage());
-            log.info("회원정보 없음");
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        try {
             importAPI.deleteBillingKey(accessToken, customerUid);
-        } catch (Exception e) {
-            log.info("error: " + e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        try {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
-        } catch (Exception e) {
+            memberService.updateBillingKey(memberId, billingKeyEnc);
+            status = true;
+        } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException | FailIssueBillingKeyException | FailEncryptException e) {
             log.info("error: " + e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
         }
-        memberService.updateBillingKey(memberId, billingKeyEnc);
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
     }
 
     @DeleteMapping("/billing")
@@ -201,38 +171,34 @@ public class AccountController {
     public ResponseEntity<?> billingKeyDelete(HttpServletRequest req) {
         String token = req.getHeader("Authorization").substring(7);
         String memberId = jwtUtil.getUserid(token);
-        Map<String, Object> result = new HashMap<>();
         String accessToken, customerUidEnc, customerUid;
+        boolean status = false;
+        String msg = "";
         try {
             accessToken = importAPI.getAccessToken();
-        } catch (Exception e) {
-            log.info("error: " + e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }
-        try {
             MemberDTO member = memberService.findMember(memberId);
-            customerUidEnc = member.getBillingKey();
-            customerUid = accountService.decrypt(customerUidEnc);
-            importAPI.deleteBillingKey(accessToken, customerUid);
-            memberService.deleteBillingKey(memberId);
-        } catch (Exception e){
-            log.info(e.getMessage());
-            result.put("status", false);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            if(member.getBillingKey() != null) {
+                customerUidEnc = member.getBillingKey();
+                customerUid = accountService.decrypt(customerUidEnc);
+                importAPI.deleteBillingKey(accessToken, customerUid);
+                memberService.deleteBillingKey(memberId);
+                status = true;
+            } else {
+                msg = "billingKey가 존재하지 않습니다";
+                log.info(msg);
+            }
+        } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException e) {
+            log.info("error: " + e.getMessage());
+            log.info("error: " + e.getClass());
         }
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
     }
 
     @GetMapping("/bank")
     @Operation(description = "은행 조회")
     public ResponseEntity<?> BankCheck(HttpServletRequest req) {
         List<Bank> bankList = accountService.findAll();
-        Map<String, Object> result = new HashMap<>();
-        result.put("bankList", bankList);
-        result.put("status", true);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(BankListResponse.create(bankList), HttpStatus.OK);
     }
 
 }
