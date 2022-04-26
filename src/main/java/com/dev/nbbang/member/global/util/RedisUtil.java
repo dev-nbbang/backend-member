@@ -1,7 +1,8 @@
 package com.dev.nbbang.member.global.util;
 
+import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
+import com.dev.nbbang.member.global.exception.NbbangException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
@@ -22,5 +23,9 @@ public class RedisUtil {
         ValueOperations<String, String> vop = redisTemplate.opsForValue();
         Duration expire = Duration.ofMillis(expireTime);
         vop.set(key, value, expire);
+    }
+
+    public Boolean deleteData(String key) {
+        return redisTemplate.delete(key);
     }
 }

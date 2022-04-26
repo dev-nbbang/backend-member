@@ -1,71 +1,99 @@
 package com.dev.nbbang.member.domain.user.entity;
 
+import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Getter
 @NoArgsConstructor
-@ToString
+@DynamicInsert
+@DynamicUpdate
+@AllArgsConstructor
+@Builder
 @Table(name = "MEMBER")
+@EqualsAndHashCode
 public class Member implements UserDetails {
     @Id
-    @Column(name = "member_id", nullable = false)
+    @Column(name = "MEMBER_ID", nullable = false)
     private String memberId;
 
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "bank_id", nullable = false)
-    private int bankId;
+    @Column(name = "bank_id")
+    private Integer bankId;
 
     @Column(name = "bank_account")
     private String bankAccount;
 
-    @Column(name = "grade", nullable = false)
-    private String grade;
+    @Column(name = "grade")
+    @Enumerated(EnumType.STRING)
+    private Grade grade;
 
-    @Column(name = "point", nullable = false)
-    private long point;
+    @Column(name = "point")
+    private Long point;
 
-    @Column(name = "exp", nullable = false)
-    private long exp;
+    @Column(name = "exp")
+    private Long exp;
 
     @Column(name = "billing_key")
     private String billingKey;
 
-    @Column(name = "party_invite_yn", nullable = false)
-    private char partyInviteYn;
+    @Column(name = "party_invite_yn")
+    private String partyInviteYn;
 
-    @Builder
-    public Member(String memberId, String nickname, int bankId, String bankAccount, String grade, int point, int exp, String billingKey, char partyInviteYn) {
-        this.memberId = memberId;
-        this.nickname = nickname;
-        this.bankId = bankId;
-        this.bankAccount = bankAccount;
-        this.grade = grade;
-        this.point = point;
-        this.exp = exp;
-        this.billingKey = billingKey;
-        this.partyInviteYn = partyInviteYn;
+    // 양방향 조회 안되는 이유 찾기
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default        //NPE 해결
+    private List<MemberOtt> memberOtt = new ArrayList<>();
+
+//    @ManyToMany
+//    @JoinTable(name = "MEMBER_OTT",
+//            joinColumns = @JoinColumn(name = "member_id"),
+//            inverseJoinColumns = @JoinColumn(name = "ott_id"))
+//    private List<OttView> ottView = new ArrayList<>();
+
+    @PrePersist
+    private void prePersist() {
+        if (this.grade == null) grade = Grade.BRONZE;
+        if (this.point == null) point = 0L;
+        if (this.exp == null) exp = 0L;
+        if (this.partyInviteYn == null) partyInviteYn = "Y";
     }
 
-    @ManyToMany
-    @JoinTable(name="MEMBER_OTT",
-        joinColumns = @JoinColumn(name="member_id"),
-        inverseJoinColumns = @JoinColumn(name="ott_id"))
-    private List<OTTView> ottView;
+    //https://stackoverflow.com/questions/32295688/spring-data-jpa-update-method
+    //https://www.inflearn.com/questions/16235
+    // 회원 등급 수정
+    public void updateMember(String memberId, Grade grade) {
+        this.memberId = memberId;
+        this.grade = grade;
+    }
+
+    // 회원 정보 수정
+    public void updateMember(String memberId, String nickname, String partyInviteYn, List<MemberOtt> memberOtt) {
+        this.memberId = memberId;
+        this.nickname = nickname;
+        this.partyInviteYn = partyInviteYn;
+
+        //  MEMBER_OTT 관계 제거 후 새로운 데이터 수정
+        this.memberOtt.clear();
+        this.memberOtt.addAll(memberOtt);
+    }
+
+    // 회원 경험치 변경
+    public void updateMember(String memberId, Long exp) {
+        this.memberId = memberId;
+        this.exp = exp;
+    }
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Override
