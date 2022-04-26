@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 public class MemberOttResponse {
     private String memberId;
-    private OttView ottView;
+    private List<OttView> ottView;
     private boolean status;
 
     /**
@@ -25,16 +25,13 @@ public class MemberOttResponse {
      * @param status "상태값"
      * @return savedMemberOtt "MemberOttResponse 타입 리스트"
      */
-    public static List<MemberOttResponse> createList(List<MemberOttDTO> memberOttDTOList, boolean status) {
-        List<MemberOttResponse> memberOtt  = new ArrayList<>();
 
+    public static MemberOttResponse create(List<MemberOttDTO> memberOttDTOList, boolean status) {
+        List<OttView> ottView = new ArrayList<>();
         for (MemberOttDTO memberOttDTO : memberOttDTOList) {
-            memberOtt.add(MemberOttResponse.builder()
-                    .memberId(memberOttDTO.getMember().getMemberId())
-                    .ottView(memberOttDTO.getOttView())
-                    .status(status).build());
+            ottView.add(memberOttDTO.getOttView());
         }
 
-        return memberOtt;
+        return MemberOttResponse.builder().memberId(memberOttDTOList.get(0).getMember().getMemberId()).ottView(ottView).status(status).build();
     }
 }
