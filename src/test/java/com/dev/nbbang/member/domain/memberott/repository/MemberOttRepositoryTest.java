@@ -126,7 +126,7 @@ class MemberOttRepositoryTest {
     }
 
     @Test
-    @DisplayName("관심 OTT 레포지토리 : 회원 아이디, Ott ID로 관심 OTT 등록여부 판단 성공")
+    @DisplayName("관심 OTT 레포지토리 : 회원 아이디, Ott ID로 관심 OTT 등록여부 판단 데이터 없음")
     void 관심_OTT_등록여부_판단_성공() {
         // given
         Member member = testMember();
@@ -141,7 +141,25 @@ class MemberOttRepositoryTest {
 
         //then
         assertThat(findMemberOtt).isNull();
+    }
 
+    @Test
+    @DisplayName("관심 OTT 레포지토리 : 회원 아이디, Ott ID로 관심 OTT 등록여부 판단 데이터 있음")
+    void 관심_OTT_등록여부_판단_실패() {
+        // given
+        Member member = testMember();
+        OttView ottView = OttView.builder()
+                .ottId(2)
+                .ottName("test2")
+                .ottImage("test2.com").build();
+
+        // when
+        MemberOtt findMemberOtt = memberOttRepository.findMemberOttByMemberAndOttView(member, ottView);     //npe
+
+        //then
+        assertThat(findMemberOtt).isNotNull();
+        assertThat(findMemberOtt.getMember().getMemberId()).isEqualTo("test424");
+        assertThat(findMemberOtt.getOttView().getOttId()).isEqualTo(2);
     }
 
     private static List<MemberOtt> testMemberOtt(){
