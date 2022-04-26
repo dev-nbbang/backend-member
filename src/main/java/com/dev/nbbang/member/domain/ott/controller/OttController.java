@@ -50,7 +50,7 @@ public class OttController {
             List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(memberId, request.getOttId());
 
 
-            return new ResponseEntity<>(MemberOttResponse.createList(savedMemberOtt, true), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberOttResponse.create(savedMemberOtt, true), HttpStatus.CREATED);
         } catch (NoSuchMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - registerMemberOtt] : " + e.getMessage());
 
@@ -70,7 +70,7 @@ public class OttController {
             // 관심 OTT 조회
             List<MemberOttDTO> findMemberOtt = memberOttService.findMemberOttByMemberId(memberId);
 
-            return new ResponseEntity<>(MemberOttResponse.createList(findMemberOtt, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberOttResponse.create(findMemberOtt, true), HttpStatus.OK);
         } catch (NoSuchMemberException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - searchMemberOtt] : " + e.getMessage());
 
@@ -91,7 +91,7 @@ public class OttController {
             memberOttService.deleteMemberOtt(memberId, ottId);
 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (NoSuchMemberException | NoSuchMemberOttException e) {
+        } catch (NoSuchMemberException | NoSuchOttException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteMemberOtt] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
@@ -111,7 +111,7 @@ public class OttController {
             memberOttService.deleteAllMemberOtt(memberId);
 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (NoSuchMemberException | FailDeleteMemberOttException e) {
+        } catch (NoSuchMemberException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
