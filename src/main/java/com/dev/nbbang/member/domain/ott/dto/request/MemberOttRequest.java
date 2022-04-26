@@ -11,8 +11,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MemberOttRegisterRequest {
+public class MemberOttRequest {
     private String memberId;
     private List<Integer> ottId;
 
 }
+

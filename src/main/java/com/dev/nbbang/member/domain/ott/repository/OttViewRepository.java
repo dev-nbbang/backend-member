@@ -15,4 +15,5 @@ public interface OttViewRepository extends JpaRepository<OttView, Integer> {
     // OTT 아이디 리스트를 통해 한번에 찾기
     List<OttView> findAllByOttIdIn(List<Integer> ottId);
 
+    // 엔빵에서 제공하는 OTT 서비스 조회 시 findAll() 사용
 }

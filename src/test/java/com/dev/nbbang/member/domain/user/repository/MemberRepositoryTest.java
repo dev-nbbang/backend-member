@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +33,7 @@ class MemberRepositoryTest {
         Member savedMember = memberRepository.save(member);
 
         //when
-        Member findMember = memberRepository.findByMemberId("TestIds").orElseGet(null);
+        Member findMember = memberRepository.findByMemberId("TestIds");
 
         //then
 
@@ -43,10 +44,10 @@ class MemberRepositoryTest {
     @Test
     @DisplayName("회원 레포지토리 : 회원 아이디로 회원 찾기 - 실패")
     void 회원아이디로_회원_찾기_실패() {
-        Optional<Member> savedMember = memberRepository.findByMemberId("test");
+        Member savedMember = memberRepository.findByMemberId("no id");
 
         //then
-        assertThat(savedMember).isEqualTo(Optional.empty());
+        assertThat(savedMember).isNull();
     }
 
     @Test
@@ -60,7 +61,7 @@ class MemberRepositoryTest {
         Member savedMember = memberRepository.save(member);
 
         //when
-        Member findMember = memberRepository.findByNickname("TestMemberA").orElseGet(null);
+        Member findMember = memberRepository.findByNickname("TestMemberA");
 
         //then
         assertThat(savedMember.getMemberId()).isEqualTo(findMember.getMemberId());
@@ -71,10 +72,10 @@ class MemberRepositoryTest {
     @DisplayName("회원 레포지토리 : 회원 닉네임으로 회원 찾기 - 실패")
     void 회원_닉네임으로_회원_찾기_실패() {
         //when
-        Optional<Member> member = memberRepository.findByNickname("not nickname");
+        Member member = memberRepository.findByNickname("not nickname");
 
         //then
-        assertThat(member).isEqualTo(Optional.empty());
+        assertThat(member).isNull();
     }
 
     @Test
@@ -96,7 +97,6 @@ class MemberRepositoryTest {
         //then
         assertThat(savedMember.getMemberId()).isEqualTo(member.getMemberId());
         assertThat(savedMember.getNickname()).isEqualTo(member.getNickname());
-//        assertThat(savedMember.getOttView().size()).isEqualTo(member.getOttView().size());
         assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
         assertThat(savedMember.getPoint()).isEqualTo(0);
         assertThat(savedMember.getExp()).isEqualTo(0);
@@ -110,8 +110,7 @@ class MemberRepositoryTest {
         final Member member = Member.builder()
                 .memberId("Test Id")
                 .nickname("맹준").build();
-//                .ottView(new ArrayList<>())
-//                .build();
+
 
         //when
         Member savedMember = memberRepository.save(member);
@@ -132,7 +131,7 @@ class MemberRepositoryTest {
         String nickname = "test";
 
         // when
-        List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseGet(ArrayList::new);
+        List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname);
 
         // then
         for (Member member : members) {
@@ -147,11 +146,13 @@ class MemberRepositoryTest {
         String nickname = "none";
 
         // when
-        List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname).orElseGet(ArrayList::new);
+        List<Member> members = memberRepository.findTop5ByNicknameStartingWith(nickname);
 
         // then
-        assertThat(members.size()).isEqualTo(0);
-        assertThat(members.isEmpty()).isTrue();
+        assertThat(members).isEqualTo(Collections.emptyList());
+        assertThat(members).isEmpty();
+        assertThat(members).isNull();
+
     }
 
     @Test
@@ -162,9 +163,9 @@ class MemberRepositoryTest {
 
         // when
         memberRepository.deleteByMemberId(memberId);
-        Optional<Member> findMember = memberRepository.findByMemberId(memberId);
+        Member findMember = memberRepository.findByMemberId(memberId);
 
         // then
-        assertThat(findMember).isEqualTo(Optional.empty());
+        assertThat(findMember).isNull();
     }
 }
