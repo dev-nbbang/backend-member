@@ -16,3 +16,4 @@ public class MemberOttRequest {
     private List<Integer> ottId;
 
 }
+
