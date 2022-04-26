@@ -38,7 +38,12 @@ public class MemberServiceImpl implements MemberService {
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
 
-    // 소셜타입마다 각각 다른 소셜 로그인
+    /**
+     * 소셜 로그인 타입과 인가코드를 이용해 각 포털의 소셜 로그인을 통해 로그인한다.
+     * @param socialLoginType - Enum 타입의 소셜 로그인 타입 (Google, kakao)
+     * @param code - 각 소셜 로그인 콜백 URI에 리턴해주는 인가코드
+     * @return memberId - 각 포털의 첫번째 이니셜과 제공하는 소셜 로그인 아이디를 합친 String 타입의 고유 아이디
+     */
     public String socialLogin(SocialLoginType socialLoginType, String code) {
         SocialOauth socialOauth = socialTypeMatcher.findSocialOauthByType(socialLoginType);
         try {
@@ -51,7 +56,11 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    // 회원 아이디로 회원 찾기
+    /**
+     * 회원 아이디를 이용해 가입된 회원 상세 내용을 찾는다.
+     * @param memberId - JWT 토큰으로 파싱한 회원 아이디
+     * @return MemberDTO - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     public MemberDTO findMember(String memberId) {
         Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
@@ -60,7 +69,11 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(member);
     }
 
-    // 닉네임으로 회원 찾기
+    /**
+     * 회원 닉네임을 이용해 가입된 회원 상세 내용을 찾는다.
+     * @param nickname - String 타입의 닉네임
+     * @return MemberDTO - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     public MemberDTO findMemberByNickname(String nickname) {
         Member member = Optional.ofNullable(memberRepository.findByNickname(nickname))
@@ -68,7 +81,12 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(member);
     }
 
-    // 추가 회원 정보 저장 하기(Member_Ott 구분)
+    /**
+     * 회원의 상세내용과 관심 Ott 아이디를 이용해 회원을 저장하고 관심 Ott 서비스를 등록한다.
+     * @param member - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     * @param ottId - Integer 타입의 Ott 서비스 아이디 리스트
+     * @return MemberDTO - 새로 저장된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     @Transactional
     public MemberDTO saveMember(Member member, List<Integer> ottId) {
@@ -96,6 +114,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // 회원 정보 업데이트 (Member_Ott 구분)
+
+    /**
+     * 회원 아이디를 이용해 가입된 회원을 찾은 뒤 새로운 회원 정보로 수정하고 관심 OTT 서비스도 수정한다.
+     * @param sessionMemberId - JWT 토큰으로 파싱한 세션 회원 아이디
+     * @param member - 최신 정보로 수정될 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     * @param ottId - Integer 타입의 Ott 서비스 아이디 리스트
+     * @return MemberDTO - 최신 정보로 수정된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     @Transactional
     public MemberDTO updateMember(String sessionMemberId, Member member, List<Integer> ottId) {
@@ -116,14 +142,22 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(updatedMember);
     }
 
-    // 닉네임 중복 확인
+    /**
+     * 닉네임을 이용해 가입된 회원인 여부를 판단한다.
+     * @param nickname - String 타입의 회원 닉네임
+     * @return boolean 타입 값
+     */
     @Override
     public boolean duplicateNickname(String nickname) {
         MemberDTO member = findMemberByNickname(nickname);
         return member.getNickname().length() > 0;
     }
 
-    //닉네임 리스트 가져오기
+    /**
+     * 닉네임을 이용해 해당 닉네임을 포함하고 있는 5명의 회원 리스트를 조회한다.
+     * @param nickname - String 타입의 회원 닉네임
+     * @return MemberDTO - 조회한 회원의 상세내용 리스트(memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     public List<MemberDTO> findMemberListByNickname(String nickname) {
         List<Member> findMemberList = Optional.ofNullable(memberRepository.findTop5ByNicknameStartingWith(nickname))
@@ -131,7 +165,10 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.createList(findMemberList);
     }
 
-    // 회원 탈퇴
+    /**
+     * 회원 아이디를 통해 회원 탈퇴를 진행하고, 회원 데이터를 삭제한다.
+     * @param memberId - JWT 토큰에서 파싱한 회원 아이디
+     */
     @Override
     @Transactional
     public void deleteMember(String memberId) {
@@ -150,6 +187,11 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
+    /**
+     * Redis에 저장된 리프레시 토큰을 삭제시키고 서비스 로그아웃을 한다.
+     * @param memberId - JWT 토크에서 파싱한 회원 아이디
+     * @return boolean 타입의 값
+     */
     @Override
     public boolean logout(String memberId) {
         if (memberId.length() < 1) throw new FailLogoutMemberException("로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
@@ -157,7 +199,12 @@ public class MemberServiceImpl implements MemberService {
         return redisUtil.deleteData(memberId);
     }
 
-    // 회원 등급 수정
+    /**
+     * 회원 아이디를 이용해 새로운 등급을 수정한다.
+     * @param sessionMemberId - JWT 토큰에서 파싱한 회원 아이디
+     * @param member - 새롭게 수정될 등급을 가진 회원 객체
+     * @return MemberDTO 최신 정보로 수정된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     @Transactional
     public MemberDTO updateGrade(String sessionMemberId, Member member) {
@@ -167,7 +214,12 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(findMember);
     }
 
-    // 회원 경험치 변경
+    /**
+     * 회원 아이디를 이용해 포인트를 변경시킨다.
+     * @param sessionMemberId - JWT 토큰에서 파싱한 회원 아이디
+     * @param member - 변경될 포인트를 가진 회원 객체
+     * @return MemberDTO 최신 정보로 수정된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     */
     @Override
     @Transactional
     public MemberDTO updateExp(String sessionMemberId, Member member) {
@@ -177,7 +229,11 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(findMember);
     }
 
-    // 엑세스 토큰, 리프레시 토큰 관리
+    /**
+     * DTO 타입의 회원 객체를 이용해 Redis에서 관리할 리프레시 토큰과 세션에 저장할 엑세스 토큰을 관리한다.
+     * @param member DTO 타입의 회원 객체
+     * @return accessToken String 타입의 엑세스 토큰
+     */
     @Override
     public String manageToken(MemberDTO member) {
         String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());

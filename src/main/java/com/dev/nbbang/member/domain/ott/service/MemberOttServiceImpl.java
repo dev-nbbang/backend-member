@@ -26,6 +26,12 @@ public class MemberOttServiceImpl implements MemberOttService {
     private final MemberOttRepository memberOttRepository;
     private final OttViewRepository ottViewRepository;
 
+    /**
+     * 회원 아이디와 Integer 타입의 Ott 아이디 리스트를 통해 회원의 관심 OTT 서비스를 삭제 후 최신 관심 OTT 서비스를 저장한다.
+     * @param memberId - JWT 토큰으로 파싱한 회원 아이디
+     * @param ottId - List<Integer> 타입의 Ott 아이디
+     * @return List<MemberOttDTO> - 회원 아이디와 Ott 서비스 상세내용을 갖고있다. (OttId, OttName, OttImage)
+     */
     @Override
     @Transactional
     public List<MemberOttDTO> saveMemberOtt(String memberId, List<Integer> ottId) {
@@ -49,6 +55,11 @@ public class MemberOttServiceImpl implements MemberOttService {
         return MemberOttDTO.createList(savedMemberOtt);
     }
 
+    /**
+     * 회원 아이디를 이용해 회원의 모든 관심 OTT 서비스를 조회한다.
+     * @param memberId - JWT 토큰으로 파싱한 회원 아이디
+     * @return List<MemberOttDTO> - 회원 아이디와 Ott 서비스 상세내용을 갖고있다. (OttId, OttName, OttImage)
+     */
     @Override
     public List<MemberOttDTO> findMemberOttByMemberId(String memberId) {
         // 1. 회원 찾기
@@ -62,6 +73,10 @@ public class MemberOttServiceImpl implements MemberOttService {
         return MemberOttDTO.createList(findMemberOtt);
     }
 
+    /**
+     * 회원 아이디를 이용해 회원의 모든 관심 Ott 서비스를 삭제한다.
+     * @param memberId - JWT 토큰으로 파싱한 회원 아이디
+     */
     @Override
     @Transactional
     public void deleteAllMemberOtt(String memberId) {
@@ -78,6 +93,11 @@ public class MemberOttServiceImpl implements MemberOttService {
         );
     }
 
+    /**
+     * 회원 아이디와 Ott 아이디를 이용해 회원의 특정 관심 Ott 서비스 한 개를 삭제한다.
+     * @param memberId - JWT 토큰으로 파싱한 회원 아이디
+     * @param ottId - Integer 타입의 Ott 아이디
+     */
     @Override
     @Transactional
     public void deleteMemberOtt(String memberId, Integer ottId) {

@@ -14,6 +14,5 @@ import java.util.List;
 public class MemberOttRequest {
     private String memberId;
     private List<Integer> ottId;
-
 }
 
