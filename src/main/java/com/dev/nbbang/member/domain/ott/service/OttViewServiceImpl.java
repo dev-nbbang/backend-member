@@ -16,7 +16,11 @@ import java.util.Optional;
 public class OttViewServiceImpl implements OttViewService{
     private final OttViewRepository ottViewRepository;
 
-    // OTT ID로 OTT 서비스 조회하기
+    /**
+     * Ott 서비스 아이디를 이용해 특정 Ott 서비스 한 개를 조회한다.
+     * @param ottId - Integer 타입의 Ott 서비스 아이디
+     * @return ottViewDTO - OTT 서비스 상세 내용 (OttId, OttName, OttImage)
+     */
     @Override
     public OttViewDTO findByOttId(Integer ottId) {
         // 1. OTT Id 한개로 조회하기
@@ -25,7 +29,11 @@ public class OttViewServiceImpl implements OttViewService{
         return OttViewDTO.create(ottView);
     }
 
-    // OTT ID 리스트로 OTT 서비스 조회하기
+    /**
+     * Integer 타입으로 구성된 Ott 서비스 아이디를 이용해 특정 Ott 서비스 리스트를 조회한다.
+     * @param ottId - Integer 타입의 Ott 서비스 아이디
+     * @return ottViewDTO - 리스트 타입의 OTT 서비스 상세 내용 (OttId, OttName, OttImage)
+     */
     @Override
     public List<OttViewDTO> findAllByOttId(List<Integer> ottId) {
         // 1. Ott ID 리스트로 조회하기
@@ -34,7 +42,10 @@ public class OttViewServiceImpl implements OttViewService{
         return OttViewDTO.createList(ottView);
     }
 
-    // 모든 OTT 서비스 조회하기
+    /**
+     * 엔빵 서비스 DB에 저장된 모든 Ott 서비스 상세내용을 조회한다.
+     * @return ottViewDTO - 리스트 타입의 OTT 서비스 상세 내용 (OttId, OttName, OttImage)
+     */
     @Override
     public List<OttViewDTO> findAll() {
         // 1. 모든 OTT 리스트 조회하기
