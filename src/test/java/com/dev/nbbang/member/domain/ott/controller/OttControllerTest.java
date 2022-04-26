@@ -1,11 +1,13 @@
 package com.dev.nbbang.member.domain.ott.controller;
 
 import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
+import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
 import com.dev.nbbang.member.domain.ott.dto.request.MemberOttRequest;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchMemberOttException;
+import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.ott.service.MemberOttService;
 import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.entity.Grade;
@@ -45,6 +47,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = OttController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = SecurityConfig.class)})
@@ -271,6 +274,57 @@ class OttControllerTest {
         assertEquals(response.getStatus(), HttpStatus.OK.value());
     }
 
+    @Test
+    @DisplayName("OTT 컨트롤러 : 엔빵 OTT 서비스 전체 조회 성공")
+    void 엔빵_OTT_서비스_전체_조회_성공() throws Exception {
+        /**
+         * URI : GET /ott-interest/list
+         * 1. OTT 서비스 전체조회 로직 호출
+         */
+        String uri = "/ott-interest/list";
+        List<OttViewDTO> testOttView = testOttViewDTO();
+        given(ottViewService.findAll()).willReturn(testOttView);
+
+        // when
+        MockHttpServletResponse response = mvc.perform(get(uri))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.[0].ottId").value(1))
+                .andExpect(jsonPath("$.[0].ottName").value("test"))
+                .andExpect(jsonPath("$.[0].ottImage").value("test.image"))
+                .andExpect(jsonPath("$.[1].ottId").value(2))
+                .andExpect(jsonPath("$.[1].ottName").value("test2"))
+                .andExpect(jsonPath("$.[1].ottImage").value("test2.image"))
+                .andExpect(jsonPath("$.[2].ottId").value(3))
+                .andExpect(jsonPath("$.[2].ottName").value("test3"))
+                .andExpect(jsonPath("$.[2].ottImage").value("test3.image"))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        // then
+        assertEquals(response.getStatus(), HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("OTT 컨트롤러 : 엔빵 OTT 서비스 전체 조회 실패")
+    void 엔빵_OTT_서비스_전체_조회_실패() throws Exception {
+        /**
+         * URI : GET /ott-interest/list
+         * 1. OTT 서비스 전체조회 로직 호출
+         */
+        String uri = "/ott-interest/list";
+        given(ottViewService.findAll()).willThrow(NoSuchOttException.class);
+
+        // when
+        MockHttpServletResponse response = mvc.perform(get(uri))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(false))
+                .andDo(print())
+                .andReturn().getResponse();
+
+        // then
+        assertEquals(response.getStatus(), HttpStatus.OK.value());
+    }
+
     private static Member testMember() {
         return Member.builder()
                 .memberId("Test Id")
@@ -306,6 +360,16 @@ class OttControllerTest {
 
         return ottView;
     }
+
+    private static List<OttViewDTO> testOttViewDTO() {
+        List<OttViewDTO> ottView = new ArrayList<>();
+        ottView.add(new OttViewDTO(1, "test", "test.image"));
+        ottView.add(new OttViewDTO(2, "test2", "test2.image"));
+        ottView.add(new OttViewDTO(3, "test3", "test3.image"));
+
+        return ottView;
+    }
+
 
     private static List<MemberOttDTO> testMemberOttDTO() {
         List<MemberOttDTO> memberOtt = new ArrayList<>();
