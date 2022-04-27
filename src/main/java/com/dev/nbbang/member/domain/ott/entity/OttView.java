@@ -1,5 +1,6 @@
 package com.dev.nbbang.member.domain.ott.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,8 +20,10 @@ public class OttView {
     @Id
     @Column(name = "ott_id", nullable = false)
     private Integer ottId;
+
     @Column(name = "ott_name")
     private String ottName;
+
     @Column(name = "ott_image")
     private String ottImage;
 

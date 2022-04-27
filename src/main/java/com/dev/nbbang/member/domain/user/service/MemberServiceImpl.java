@@ -246,14 +246,16 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void updateAccount(String memberId, Member member) {
-        Member findMember = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member findMember = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateAccountMember(findMember.getMemberId(), member.getBankId(), member.getBankAccount());
     }
 
     @Override
     @Transactional
     public void deleteAccount(String memberId) {
-        Member findMember = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member findMember = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateAccountMember(findMember.getMemberId(), null, null);
     }
 
@@ -261,7 +263,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void updateBillingKey(String memberId, String billingKey) {
-        Member findMember = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member findMember = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateAccountMember(findMember.getMemberId(), billingKey);
     }
 
@@ -269,7 +272,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void deleteBillingKey(String memberId) {
-        Member findMember = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        Member findMember = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateAccountMember(findMember.getMemberId(), null);
     }
 }
