@@ -30,7 +30,8 @@ public class CouponServiceImpl implements CouponService {
     // 사용자 쿠폰 리스트 조회
     @Override
     public List<MemberCoupon> memberCouponList(String memberId) {
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
+        Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
         return memberCouponRepository.findAllByMemberAndUseYN(member, "N").orElseThrow(
                 () -> new NoSuchCouponException("해당 회원이 가지고 있는 쿠폰이 없습니다.", NbbangException.NOT_FOUND_COUPON));
     }
@@ -40,7 +41,8 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public void saveMemberCoupon(String memberId, int couponId) {
         Coupon coupon = couponRepository.findByCouponId(couponId).orElseThrow(() -> new NoSuchCouponException("쿠폰이 없습니다", NbbangException.NOT_FOUND_COUPON));
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
+        Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
         Optional<MemberCoupon> memberCoupon = memberCouponRepository.findByMemberAndCoupon(member, coupon);
         if(memberCoupon.isPresent()) throw new DuplicationCouponException("쿠폰이 이미 존재합니다", NbbangException.Duplication_Coupon);
         LocalDate now = LocalDate.now();
@@ -55,7 +57,8 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public void updateMemberCoupon(String memberId, int couponId) {
         Coupon coupon = couponRepository.findByCouponId(couponId).orElseThrow(()-> new NoSuchCouponException("해당 되는 쿠폰이 없습니다.", NbbangException.NOT_FOUND_COUPON));
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
+        Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
         MemberCoupon memberCoupon = memberCouponRepository.findByMemberAndCoupon(member, coupon).orElseThrow(() -> new NoSuchCouponException("해당 회원이 가지고 있는 쿠폰이 없습니다.", NbbangException.NOT_FOUND_COUPON));
         if(memberCoupon.getUseYN() == "Y") throw new AlreadyUsedCouponException("이미 사용된 쿠폰입니다", NbbangException.Already_Used_Coupon);
         memberCoupon.updateMemberCoupon(memberCoupon.getMember(), "Y");
@@ -66,7 +69,8 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public void deleteMemberCoupon(String memberId, int couponId) {
         Coupon coupon = couponRepository.findByCouponId(couponId).orElseThrow(()-> new NoSuchCouponException("해당 되는 쿠폰이 없습니다.", NbbangException.NOT_FOUND_COUPON));
-        Member member = memberRepository.findByMemberId(memberId).orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
+        Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
+                .orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
         memberCouponRepository.deleteByMemberAndCoupon(member, coupon);
     }
 

@@ -1,5 +1,6 @@
 package com.dev.nbbang.member.domain.user.entity;
 
+import com.dev.nbbang.member.domain.coupon.entity.MemberCoupon;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -56,11 +57,9 @@ public class Member implements UserDetails {
     @Builder.Default        //NPE 해결
     private List<MemberOtt> memberOtt = new ArrayList<>();
 
-//    @ManyToMany
-//    @JoinTable(name = "MEMBER_OTT",
-//            joinColumns = @JoinColumn(name = "member_id"),
-//            inverseJoinColumns = @JoinColumn(name = "ott_id"))
-//    private List<OttView> ottView = new ArrayList<>();
+    @OneToMany(mappedBy = "member")
+    @Builder.Default
+    private List<MemberCoupon> memberCouponList = new ArrayList<>();
 
     @PrePersist
     private void prePersist() {
@@ -70,8 +69,6 @@ public class Member implements UserDetails {
         if (this.partyInviteYn == null) partyInviteYn = "Y";
     }
 
-    //https://stackoverflow.com/questions/32295688/spring-data-jpa-update-method
-    //https://www.inflearn.com/questions/16235
     // 회원 등급 수정
     public void updateMember(String memberId, Grade grade) {
         this.memberId = memberId;
