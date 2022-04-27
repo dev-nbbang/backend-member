@@ -1,7 +1,8 @@
 package com.dev.nbbang.member.domain.user.dto.request;
 
+import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,11 +20,10 @@ public class MemberRegisterRequest {
     private List<Integer> ottId;
     private String recommendMember;
 
-    public static Member toEntity(MemberRegisterRequest request, List<OTTView> ottView) {
+    public static Member toEntity(MemberRegisterRequest request) {
         return Member.builder()
                 .memberId(request.getMemberId())
                 .nickname(request.getNickname())
-                .ottView(ottView)
                 .build();
     }
 }

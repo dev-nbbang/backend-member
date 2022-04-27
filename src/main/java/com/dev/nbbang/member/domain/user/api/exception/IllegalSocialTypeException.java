@@ -1,17 +1,16 @@
-package com.dev.nbbang.member.domain.user.exception;
+package com.dev.nbbang.member.domain.user.api.exception;
 
 import com.dev.nbbang.member.global.exception.NbbangException;
-import lombok.RequiredArgsConstructor;
 
-public class NoCreateMemberException extends RuntimeException {
+public class IllegalSocialTypeException extends RuntimeException {
     private final NbbangException nbbangException;
 
-    public NoCreateMemberException(String message, NbbangException nbbangException) {
+    public IllegalSocialTypeException(String message, NbbangException nbbangException) {
         super(message);
         this.nbbangException = nbbangException;
     }
 
-    public NoCreateMemberException(NbbangException nbbangException) {
+    public IllegalSocialTypeException(NbbangException nbbangException) {
         super(nbbangException.getMessage());
         this.nbbangException = nbbangException;
     }
@@ -19,4 +18,6 @@ public class NoCreateMemberException extends RuntimeException {
     public NbbangException getNbbangException() {
         return this.nbbangException;
     }
+
 }
+

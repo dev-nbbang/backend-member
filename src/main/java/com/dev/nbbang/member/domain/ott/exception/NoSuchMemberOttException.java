@@ -1,17 +1,16 @@
-package com.dev.nbbang.member.domain.user.exception;
+package com.dev.nbbang.member.domain.ott.exception;
 
 import com.dev.nbbang.member.global.exception.NbbangException;
-import lombok.RequiredArgsConstructor;
 
-public class NoCreateMemberException extends RuntimeException {
+public class NoSuchMemberOttException extends RuntimeException {
     private final NbbangException nbbangException;
 
-    public NoCreateMemberException(String message, NbbangException nbbangException) {
+    public NoSuchMemberOttException(String message, NbbangException nbbangException) {
         super(message);
         this.nbbangException = nbbangException;
     }
 
-    public NoCreateMemberException(NbbangException nbbangException) {
+    public NoSuchMemberOttException(NbbangException nbbangException) {
         super(nbbangException.getMessage());
         this.nbbangException = nbbangException;
     }
@@ -19,4 +18,6 @@ public class NoCreateMemberException extends RuntimeException {
     public NbbangException getNbbangException() {
         return this.nbbangException;
     }
+
 }
+

@@ -4,7 +4,7 @@ package com.dev.nbbang.member.domain.user.service;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
-import com.dev.nbbang.member.domain.user.entity.OTTView;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 
 import java.util.List;
 
@@ -19,22 +19,10 @@ public interface MemberService {
     MemberDTO findMemberByNickname(String nickname);
 
     // 회원 추가 정보 저장
-    MemberDTO memberSave(Member member);
+    MemberDTO saveMember(Member member, List<Integer> ottId);
 
-    // 회원 정보 수정
-    MemberDTO updateMember(String memberId, Member member);
-
-    // 회원 계좌 정보 저장
-    void updateAccount(String memberId, Member member);
-
-    // 회원 계좌 정보 삭제
-    void deleteAccount(String memberId);
-
-    // 회원 빌링키 정보 저장
-    void updateBillingKey(String memberId, String billingKey);
-
-    // 회원 빌링키 정보 삭제
-    void deleteBillingKey(String memberId);
+    // 회원 프로필 수정
+    MemberDTO updateMember(String memberId, Member member, List<Integer> ottId);
 
     // 닉네임 중복 체크
     boolean duplicateNickname(String nickname);
@@ -48,6 +36,24 @@ public interface MemberService {
     // 로그 아웃
     boolean logout(String memberId);
 
-    OTTView findByOttId(int ottId);
+    // 등급 수정
+    MemberDTO updateGrade(String memberId, Member member);
 
+    // 경험치 변경
+    MemberDTO updateExp(String memberId, Member member);
+
+    // 토큰 관리
+    String manageToken(MemberDTO member);
+
+    // 회원 계좌 정보 저장
+    void updateAccount(String memberId, Member member);
+
+    // 회원 계좌 정보 삭제
+    void deleteAccount(String memberId);
+
+    // 회원 빌링키 정보 저장
+    void updateBillingKey(String memberId, String billingKey);
+
+    // 회원 빌링키 정보 삭제
+    void deleteBillingKey(String memberId);
 }

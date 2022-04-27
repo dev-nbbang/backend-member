@@ -6,9 +6,9 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 
 @SpringBootApplication
 public class MemberApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(MemberApplication.class, args);
 	}
 
 }
+

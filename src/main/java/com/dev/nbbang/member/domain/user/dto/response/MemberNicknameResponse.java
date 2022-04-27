@@ -1,6 +1,7 @@
 package com.dev.nbbang.member.domain.user.dto.response;
 
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
+import com.dev.nbbang.member.domain.user.entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

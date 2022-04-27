@@ -1,10 +1,8 @@
 package com.dev.nbbang.member.domain.user.dto.response;
 
-
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
-import com.dev.nbbang.member.domain.user.entity.Grade;
+import com.dev.nbbang.member.domain.ott.entity.OttView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,27 +11,32 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class MemberDefaultInfoResponse {
+@Getter
+public class MemberModifyResponse {
     private String memberId;
     private String nickname;
-    private Grade grade;
-    private Long point;
-    private Long exp;
     private List<OttView> ottView;
-    private boolean status;
+    private String partyInviteYn;
 
-    public static MemberDefaultInfoResponse create(MemberDTO member, boolean status) {
-        return MemberDefaultInfoResponse.builder().memberId(member.getMemberId())
+    /*public static MemberModifyResponse create(MemberDTO member) {
+        return MemberModifyResponse.builder()
+                .memberId(member.getMemberId())
                 .nickname(member.getNickname())
-                .grade(member.getGrade())
-                .point(member.getPoint())
-                .exp(member.getExp())
+                .ottView(member.getOttView())
+                .partyInviteYn(member.getPartyInviteYn())
+                .build();
+    }*/
+
+    public static MemberModifyResponse create(MemberDTO member) {
+        return MemberModifyResponse.builder()
+                .memberId(member.getMemberId())
+                .nickname(member.getNickname())
                 .ottView(getOttView(member))
-                .status(status).build();
+                .partyInviteYn(member.getPartyInviteYn())
+                .build();
     }
 
     private static List<OttView> getOttView(MemberDTO member) {
