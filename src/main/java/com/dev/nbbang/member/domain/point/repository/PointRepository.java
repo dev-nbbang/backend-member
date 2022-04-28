@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface PointRepository extends JpaRepository<Point, Long> {
     // 페이징 처리로 구현 (10개)
-    Page<Point> findByIdLessThanAndMemberOrderByIdDesc(Long id, Member member, Pageable pageRequest);
+    Page<Point> findByIdLessThanAndMemberOrderByIdDesc(Long id, Member member, Pageable pageable);
 
     // 포인트 이력 추가
     Point save(Point point);
