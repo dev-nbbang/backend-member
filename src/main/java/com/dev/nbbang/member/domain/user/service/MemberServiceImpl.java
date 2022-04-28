@@ -121,17 +121,19 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NoCreatedMemberOttException("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
 
         // 6. 추천인 Point 수정해주기 (추천인 회원 찾기, 포인트 수정 ,포인트 이력 저장)
-        Member recommendMember = Optional.ofNullable(memberRepository.findByMemberId(recommendMemberId))
-                .orElseThrow(() -> new NoSuchMemberException("추천인 아이디가 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+        if(!recommendMemberId.isEmpty()) {
+            Member recommendMember = Optional.ofNullable(memberRepository.findByMemberId(recommendMemberId))
+                    .orElseThrow(() -> new NoSuchMemberException("추천인 아이디가 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
 
-        // 7. 추천인 포인트 증가, 임의 500 포인트
-        recommendMember.updatePoint(recommendMemberId, 500L, PointType.INCREASE);
+            // 7. 추천인 포인트 증가, 임의 500 포인트
+            recommendMember.updatePoint(recommendMemberId, 500L, PointType.INCREASE);
 
-        // 8. 포인트 이력 저장
-        Optional.ofNullable(pointRepository.save(PointDTO.toEntity(recommendMember,
-                PointDTO.builder().usePoint(500L).pointType(PointType.INCREASE).pointDetail(savedMember.getNickname() + "님의 추천인 입력 적립").build())))
-                .orElseThrow(() -> new NoCreatedPointDetailsException("포인트 상세이력을 저장하는데 실패했습니다.", NbbangException.NO_CREATE_POINT_DETAILS));
+            // 8. 포인트 이력 저장
+            Optional.ofNullable(pointRepository.save(PointDTO.toEntity(recommendMember,
+                    PointDTO.builder().usePoint(500L).pointType(PointType.INCREASE).pointDetail(savedMember.getNickname() + "님의 추천인 입력 적립").build())))
+                    .orElseThrow(() -> new NoCreatedPointDetailsException("포인트 상세이력을 저장하는데 실패했습니다.", NbbangException.NO_CREATE_POINT_DETAILS));
 
+        }
         return MemberDTO.create(savedMember);
     }
 

@@ -1,11 +1,14 @@
 package com.dev.nbbang.member.domain.point.dto.response;
 
+import com.dev.nbbang.member.domain.point.dto.PointDTO;
 import com.dev.nbbang.member.domain.point.entity.PointType;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,11 +19,17 @@ public class MemberPointModifyResponse {
     private Long usePoint;
     private String pointDetail;
     private PointType pointType;
+    private LocalDateTime pointYmd;
     private boolean status;
 
-    public static MemberPointModifyResponse create(MemberDTO member) {
+    public static MemberPointModifyResponse create(PointDTO pointDetails, boolean status) {
         return MemberPointModifyResponse.builder()
-                .memberId(member.getMemberId()).build();
-//                .usePoint(member.getPointList().)
+                .memberId(pointDetails.getMember().getMemberId())
+                .usePoint(pointDetails.getUsePoint())
+                .pointDetail(pointDetails.getPointDetail())
+                .pointType(pointDetails.getPointType())
+                .pointYmd(pointDetails.getPointYmd())
+                .status(status)
+                .build();
     }
 }

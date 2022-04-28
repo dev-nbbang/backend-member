@@ -7,8 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,6 +19,7 @@ import java.time.LocalDateTime;
 @Getter
 public class PointDTO {
     private Member member;
+    private Long pointId;
     private Long usePoint;
     private String pointDetail;
     private PointType pointType;
@@ -24,11 +28,29 @@ public class PointDTO {
     public static PointDTO create(Point point) {
         return PointDTO.builder()
                 .member(point.getMember())
+                .pointId(point.getId())
                 .usePoint(point.getUsePoint())
                 .pointDetail(point.getPointDetail())
                 .pointType(point.getPointType())
                 .pointYmd(point.getPointYmd()).build();
     }
+
+    public static List<PointDTO> createList(Member member, Page<Point> points) {
+        List<PointDTO> pointDTOS = new ArrayList<>();
+        for (Point point : points) {
+            pointDTOS.add(PointDTO.builder()
+                    .member(member)
+                    .pointId(point.getId())
+                    .usePoint(point.getUsePoint())
+                    .pointDetail(point.getPointDetail())
+                    .pointType(point.getPointType())
+                    .pointYmd(point.getPointYmd())
+                    .build());
+        }
+
+        return pointDTOS;
+    }
+
 
     public static Point toEntity(Member member, PointDTO pointDTO) {
         return Point.builder()
