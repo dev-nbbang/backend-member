@@ -1,6 +1,7 @@
 package com.dev.nbbang.member.domain.user.dto;
 
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.point.entity.Point;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ public class MemberDTO {
     private String billingKey;
     private String partyInviteYn;
     private List<MemberOtt> memberOtt;
-
+    private List<Point> pointList;
     public static MemberDTO create(Member member) {
         return MemberDTO.builder().memberId(member.getMemberId())
                 .nickname(member.getNickname())
@@ -38,6 +39,7 @@ public class MemberDTO {
                 .billingKey(member.getBillingKey())
                 .partyInviteYn(member.getPartyInviteYn())
                 .memberOtt(member.getMemberOtt())
+//                .pointList(member.getPointList())
                 .build();
     }
 
@@ -55,6 +57,7 @@ public class MemberDTO {
                     .billingKey(member.getBillingKey())
                     .partyInviteYn(member.getPartyInviteYn())
                     .memberOtt(member.getMemberOtt())
+//                    .pointList(member.getPointList())
                     .build());
         }
 

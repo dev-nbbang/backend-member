@@ -19,7 +19,7 @@ public interface MemberService {
     MemberDTO findMemberByNickname(String nickname);
 
     // 회원 추가 정보 저장
-    MemberDTO saveMember(Member member, List<Integer> ottId);
+    MemberDTO saveMember(Member member, List<Integer> ottId, String recommendMemberId);
 
     // 회원 프로필 수정
     MemberDTO updateMember(String memberId, Member member, List<Integer> ottId);

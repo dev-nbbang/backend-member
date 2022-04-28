@@ -185,7 +185,7 @@ class MemberControllerTest {
         // given
         String uri = "/members/new";
 //        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
-        given(memberService.saveMember(any(), anyList())).willThrow(NoCreateMemberException.class);
+        given(memberService.saveMember(any(), anyList(), anyString())).willThrow(NoCreateMemberException.class);
 
         //when
         MockHttpServletResponse response = mvc.perform(
@@ -209,7 +209,7 @@ class MemberControllerTest {
         String uri = "/members/new";
 //        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
 //        given(memberService.saveMember(any())).willReturn(testMemberDTO());
-        given(memberService.saveMember(any(), anyList())).willReturn(testMemberDTO());
+        given(memberService.saveMember(any(), anyList(), anyString())).willReturn(testMemberDTO());
         given(memberService.manageToken(any())).willReturn("new Token");
 
 

@@ -97,7 +97,7 @@ public class MemberController {
     public ResponseEntity<?> signUp(@RequestBody MemberRegisterRequest request, HttpServletResponse servletResponse) {
         try {
             // 요청 데이터 엔티이에 저장
-            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request), request.getOttId());
+            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request), request.getOttId(), request.getRecommendMemberId());
 
             // 회원 생성이 완료된 경우
             String accessToken = memberService.manageToken(savedMember);

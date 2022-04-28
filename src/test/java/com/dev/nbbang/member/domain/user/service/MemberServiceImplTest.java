@@ -109,7 +109,7 @@ class MemberServiceImplTest {
         given(memberOttRepository.saveAll(anyList())).willReturn(testMemberOtt());
 
         // when
-        MemberDTO savedMember = memberService.saveMember(testMemberBuilder(), testOttId());
+        MemberDTO savedMember = memberService.saveMember(testMemberBuilder(), testOttId(), "recommend Id");
 
         //then
         assertThat(savedMember.getMemberId()).isEqualTo("Test Id");
@@ -129,7 +129,7 @@ class MemberServiceImplTest {
         given(memberRepository.save(any())).willReturn(null);
 
         // when
-        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder(), testOttId()), "회원정보 저장에 실패했습니다.");
+        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder(), testOttId(), "recommend Id"), "회원정보 저장에 실패했습니다.");
     }
 
     @Test

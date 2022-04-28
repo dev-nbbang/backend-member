@@ -17,8 +17,9 @@ public enum NbbangException {
     NOT_FOUND_MEMBER_OTT("BE303", "No Such A Member Ott"),
     FAIL_TO_DELETE_MEMBER_OTT("BE304", "Fail To Delete Member Ott"),
     NOT_FOUND_COUPON("BE401", "No Such a Coupon"),
-    Duplication_Coupon("BE402", "Duplication a Coupon"),
-    Already_Used_Coupon("BE403", "Already Used a Coupon");
+    DUPLICATION_COUPON("BE402", "Duplication a Coupon"),
+    ALREADY_USED_COUPON("BE403", "Already Used a Coupon"),
+    NO_CREATE_POINT_DETAILS("BE501", "Doesn't Create Point Details"),;
 
     private String code;
     private String message;

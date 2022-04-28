@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "POINT")
@@ -24,4 +24,17 @@ public class Point {
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID")
     private Member member;
+
+    @Column(name = "POINT_YMD")
+    private LocalDateTime pointYmd;
+
+    @Column(name = "USE_POINT")
+    private Long usePoint;
+
+    @Column(name = "POINT_DETAIL")
+    private String pointDetail;
+
+    @Column(name = "POINT_TYPE")
+    @Enumerated(EnumType.STRING)
+    private PointType pointType;
 }

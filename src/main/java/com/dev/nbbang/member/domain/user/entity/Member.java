@@ -2,6 +2,8 @@ package com.dev.nbbang.member.domain.user.entity;
 
 import com.dev.nbbang.member.domain.coupon.entity.MemberCoupon;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
+import com.dev.nbbang.member.domain.point.entity.Point;
+import com.dev.nbbang.member.domain.point.entity.PointType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
@@ -12,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -52,7 +55,6 @@ public class Member implements UserDetails {
     @Column(name = "party_invite_yn")
     private String partyInviteYn;
 
-    // 양방향 조회 안되는 이유 찾기
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default        //NPE 해결
     private List<MemberOtt> memberOtt = new ArrayList<>();
@@ -60,6 +62,10 @@ public class Member implements UserDetails {
     @OneToMany(mappedBy = "member")
     @Builder.Default
     private List<MemberCoupon> memberCouponList = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Point> pointList = new ArrayList<>();
 
     @PrePersist
     private void prePersist() {
@@ -103,6 +109,13 @@ public class Member implements UserDetails {
     public void updateAccountMember(String memberId, String billingKey) {
         this.memberId = memberId;
         this.billingKey = billingKey;
+    }
+
+    // 회원 포인트 수정
+    public void updatePoint(String memberId, Long updatePoint, PointType pointType) {
+        this.memberId = memberId;
+        if(pointType == PointType.INCREASE) this.point += updatePoint;
+        if(pointType == PointType.DECREASE) this.point -= updatePoint;
     }
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
