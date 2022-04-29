@@ -7,6 +7,7 @@ public enum NbbangException {
     FAIL_TO_DELETE_MEMBER("BE004", "Failed To Delete Member"),
     FAIL_TO_CREATE_AUTH_URL("BE005", "Failed To Create Social Auth Url"),
     ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),
+    DUPLICATE_MEMBER_ID("BE007", "Duplicate Member Id"),
     FAIL_TO_ENCRYPT("BE201", "Failed To Encrypt"),
     FAIL_TO_DECRYPT("BE202", "Failed To Decrypt"),
     FAIL_TO_IMPORT_SERVER("BE203", "Failed To Import Server"),

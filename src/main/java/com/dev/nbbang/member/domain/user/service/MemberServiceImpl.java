@@ -16,10 +16,7 @@ import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
-import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
-import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
+import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.domain.user.api.util.SocialLoginIdUtil;
@@ -100,6 +97,11 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDTO saveMember(Member member, List<Integer> ottId, String recommendMemberId) {
+        // 0. 회원 존재 확인
+        Optional.ofNullable(memberRepository.findByMemberId(member.getMemberId())).ifPresent(
+                exception -> {throw new DuplicateMemberIdException("이미 존재하는 회원입니다.", NbbangException.DUPLICATE_MEMBER_ID);}
+        );
+
         // 1. 회원 저장
         Member savedMember = Optional.ofNullable(memberRepository.save(member))
                 .orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));

@@ -14,10 +14,7 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.dto.response.*;
-import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
-import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
+import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonFailResponse;
 import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
@@ -105,7 +102,7 @@ public class MemberController {
             log.info("redis 저장 완료");
 
             return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true), HttpStatus.CREATED);
-        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
+        } catch (DuplicateMemberIdException | NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
