@@ -116,6 +116,7 @@ public class MemberServiceImpl implements MemberService {
         // 4. 양방향 연관 관계 매핑 (회원 - 회원OTT 양방향 관계 매핑)
         for (MemberOtt memberOtt : memberOttList) {
             memberOtt.addMember(savedMember);
+
         }
 
         // 5. 관심 OTT 저장
