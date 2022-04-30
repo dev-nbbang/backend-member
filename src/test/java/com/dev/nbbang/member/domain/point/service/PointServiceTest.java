@@ -123,7 +123,7 @@ class PointServiceTest {
          * 2. 찾은 회원을 통해 이력 조회하기
          */
         given(memberRepository.findByMemberId(anyString())).willReturn(testMember());
-//        given(pointRepository.save(any())).willReturn();  //  여기서부터
+//        given(pointRepository.save(any())).willReturn();  // page 타입 리턴 테스트 구현 필ㅇ
 
     }
 
