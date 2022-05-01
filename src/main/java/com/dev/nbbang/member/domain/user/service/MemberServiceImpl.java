@@ -178,8 +178,11 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     public boolean duplicateNickname(String nickname) {
-        MemberDTO member = findMemberByNickname(nickname);
-        return member.getNickname().length() > 0;
+        Optional.ofNullable(memberRepository.findByNickname(nickname)).ifPresent(
+                exception -> {throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);}
+        );
+
+        return true;
     }
 
     /**

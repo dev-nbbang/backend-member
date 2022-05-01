@@ -1,25 +1,24 @@
 package com.dev.nbbang.member.domain.user.dto.response;
 
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 public class MemberExpResponse {
     private String memberId;
     private Long exp;
     private boolean status;
+    private String message;
 
-    public static MemberExpResponse create(MemberDTO member, boolean status) {
+    public static MemberExpResponse create(MemberDTO member, boolean status, String message) {
         return MemberExpResponse.builder()
                 .memberId(member.getMemberId())
                 .exp(member.getExp())
                 .status(status)
+                .message(message)
                 .build();
     }
 }

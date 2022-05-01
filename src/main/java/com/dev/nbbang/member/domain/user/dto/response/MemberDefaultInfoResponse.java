@@ -24,16 +24,19 @@ public class MemberDefaultInfoResponse {
     private Long point;
     private Long exp;
     private List<OttView> ottView;
-    private boolean status;
+    private boolean isRegister;
+    private String message;
 
-    public static MemberDefaultInfoResponse create(MemberDTO member, boolean status) {
+    public static MemberDefaultInfoResponse create(MemberDTO member, boolean isRegister, String message) {
         return MemberDefaultInfoResponse.builder().memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .grade(member.getGrade())
                 .point(member.getPoint())
                 .exp(member.getExp())
                 .ottView(getOttView(member))
-                .status(status).build();
+                .isRegister(isRegister)
+                .message(message)
+                .build();
     }
 
     private static List<OttView> getOttView(MemberDTO member) {

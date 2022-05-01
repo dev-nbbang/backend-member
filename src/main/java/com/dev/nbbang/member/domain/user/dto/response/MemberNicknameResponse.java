@@ -18,9 +18,14 @@ public class MemberNicknameResponse {
     private String memberId;
     private String nickname;
     private boolean status;
+    private String message;
 
-    public static MemberNicknameResponse create(MemberDTO member, boolean status) {
-        return MemberNicknameResponse.builder().memberId(member.getMemberId()).nickname(member.getNickname()).status(status).build();
+    public static MemberNicknameResponse create(MemberDTO member, boolean status, String message) {
+        return MemberNicknameResponse.builder()
+                .memberId(member.getMemberId())
+                .nickname(member.getNickname())
+                .status(status)
+                .message(message).build();
 
     }
 

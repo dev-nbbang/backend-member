@@ -18,14 +18,14 @@ import java.time.LocalDateTime;
 public class Point {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "POINT_ID")
+    @Column(name = "POINT_ID", updatable = false)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID")
     private Member member;
 
-    @Column(name = "POINT_YMD")
+    @Column(name = "POINT_YMD", nullable = false)
     private LocalDateTime pointYmd;
 
     @Column(name = "USE_POINT")

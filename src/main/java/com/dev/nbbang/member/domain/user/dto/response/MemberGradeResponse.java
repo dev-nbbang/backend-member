@@ -15,11 +15,13 @@ public class MemberGradeResponse {
     private String memberId;
     private Grade grade;
     private boolean status;
+    private String message;
 
-    public static MemberGradeResponse create(MemberDTO member, boolean status) {
+    public static MemberGradeResponse create(MemberDTO member, boolean status, String message) {
         return MemberGradeResponse.builder()
                 .memberId(member.getMemberId())
                 .grade(member.getGrade())
-                .status(status).build();
+                .status(status)
+                .message(message).build();
     }
 }
