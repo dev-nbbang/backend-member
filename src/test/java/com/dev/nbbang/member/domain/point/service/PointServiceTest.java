@@ -21,12 +21,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -123,8 +123,15 @@ class PointServiceTest {
          * 2. 찾은 회원을 통해 이력 조회하기
          */
         given(memberRepository.findByMemberId(anyString())).willReturn(testMember());
-//        given(pointRepository.save(any())).willReturn();  // page 타입 리턴 테스트 구현 필ㅇ
+        given(pointRepository.findByIdLessThanAndMemberOrderByIdDesc(anyLong(), any(), any())).willReturn(testPagePoint());
 
+        // when
+        List<PointDTO> findPoint = pointService.findPointDetails("testId", 2L, 3);
+
+        // then
+        assertThat(findPoint.size()).isEqualTo(2);
+        assertThat(findPoint.get(0).getMember().getMemberId()).isEqualTo("testId");
+        assertThat(findPoint.get(0).getPointType()).isEqualTo(PointType.DECREASE);
     }
 
     @Test
@@ -175,6 +182,7 @@ class PointServiceTest {
 
     private static Point testIncreasePoint() {
         return Point.builder()
+                .id(1L)
                 .member(testIncreaseMember())
                 .usePoint(500L)
                 .pointDetail("테스트 포인트 적립")
@@ -184,6 +192,7 @@ class PointServiceTest {
 
     private static Point testDecreasePoint() {
         return Point.builder()
+                .id(2L)
                 .member(testDecreaseMember())
                 .usePoint(500L)
                 .pointType(PointType.DECREASE)
@@ -210,6 +219,6 @@ class PointServiceTest {
     }
 
     private static Page<Point> testPagePoint() {
-
+        return new PageImpl<>(new ArrayList<>(Arrays.asList(testDecreasePoint(), testIncreasePoint())));
     }
 }
