@@ -19,7 +19,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class PointServiceImpl implements PointService {
+public class
+PointServiceImpl implements PointService {
     private final MemberRepository memberRepository;
     private final PointRepository pointRepository;
 

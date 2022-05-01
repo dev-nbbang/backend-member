@@ -6,6 +6,7 @@ import com.dev.nbbang.member.domain.point.dto.request.MemberPointRequest;
 import com.dev.nbbang.member.domain.point.dto.response.MemberPointModifyResponse;
 import com.dev.nbbang.member.domain.point.dto.response.MemberPointResponse;
 import com.dev.nbbang.member.domain.point.dto.response.PointDetailsResponse;
+import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
 import com.dev.nbbang.member.domain.point.service.PointService;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
@@ -16,8 +17,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,7 +69,7 @@ public class PointController {
 
             return new ResponseEntity<>(MemberPointModifyResponse.create(savePoint, true), HttpStatus.CREATED);
 
-        } catch (NoSuchMemberException e) {
+        } catch (NoSuchMemberException | NoCreatedPointDetailsException e) {
             log.info(" >> [Nbbang Point Controller - changeMemberPoints] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
