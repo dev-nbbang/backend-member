@@ -65,6 +65,7 @@ public class MemberController {
                                       @RequestParam(name = "code") String code, HttpServletResponse servletResponse) {
         log.info(">> 소셜 로그인 API 서버로부터 받은 code :: {}", code);
 
+        // 프론트 -> 소셜 서버 -> 리다이렉트 -> 프론트는 결과를 모름
         // 소셜 로그인 실패시
         String memberId = memberService.socialLogin(socialLoginType, code);
         if (memberId == null) {
@@ -75,12 +76,13 @@ public class MemberController {
         try {
             MemberDTO findMember = memberService.findMember(memberId);
 
-            // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신 (프론트 구현 후 넣어주기)
+            // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신 (프론트
+            // 구현 후 넣어주기)
             String accessToken = memberService.manageToken(findMember);
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             System.out.println("accessToken = " + accessToken);
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(findMember, true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
+            return new ResponseEntity<>(MemberDefaultInfoResponse.create(findMember, true,true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
             log.info("회원가입필요");
@@ -101,7 +103,7 @@ public class MemberController {
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             log.info("redis 저장 완료");
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true, "회원가입에 성공했습니다."), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true, true, "회원가입에 성공했습니다."), HttpStatus.CREATED);
         } catch (DuplicateMemberIdException | NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 

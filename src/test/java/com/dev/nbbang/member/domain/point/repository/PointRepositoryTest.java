@@ -13,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,6 +35,9 @@ class PointRepositoryTest {
 
         // then
         assertEquals(findPointDetail.getSize(),3);
+        assertEquals(findPointDetail.getContent().get(0).getId(), 21);
+        assertEquals(findPointDetail.getContent().get(1).getId(), 20);
+        assertEquals(findPointDetail.getContent().get(2).getId(), 19);
     }
 
     @Test
@@ -78,6 +82,7 @@ class PointRepositoryTest {
     private static Member testMember() {
         return Member.builder()
                 .memberId("K-2197723261")
+//                .memberId("test")
                 .point(1000L)
                 .build();
     }

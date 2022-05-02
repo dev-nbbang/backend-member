@@ -16,7 +16,7 @@ public class MemberRegisterResponse {
     public static MemberRegisterResponse create(String memberId, boolean isRegister) {
         return MemberRegisterResponse.builder()
                 .memberId(memberId)
-                .isRegister(registerYn)
+                .isRegister(isRegister)
                 .build();
     }
 

@@ -78,7 +78,9 @@ public class PointController {
 
     @GetMapping(value = "/details")
     @Operation(summary = "포인트 상세 이력 조회", description = "회원의 포인트 상세이력을 조회한다.(10개 페이징)")
-    public ResponseEntity<?> searchPointDetails(@RequestParam(name = "pointId") Long pointId, @RequestParam(name = "size") int size, HttpServletRequest servletRequest) {
+    public ResponseEntity<?> searchPointDetails(@RequestParam(name = "pointId") Long pointId,
+                                                @RequestParam(name = "size") int size,
+                                                HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Point Service] 포인트 상세 이력 조회");
 
         try {

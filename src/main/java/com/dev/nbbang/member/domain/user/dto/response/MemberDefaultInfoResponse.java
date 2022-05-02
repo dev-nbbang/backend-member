@@ -11,7 +11,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @AllArgsConstructor
@@ -24,10 +26,30 @@ public class MemberDefaultInfoResponse {
     private Long point;
     private Long exp;
     private List<OttView> ottView;
-    private boolean isRegister;
-    private String message;
 
-    public static MemberDefaultInfoResponse create(MemberDTO member, boolean isRegister, String message) {
+    public static Map<String, Object> create(MemberDTO member, boolean isRegister, boolean status, String message) {
+        MemberDefaultInfoResponse memberInfo = MemberDefaultInfoResponse.builder()
+                .memberId(member.getMemberId())
+                .nickname(member.getNickname())
+                .grade(member.getGrade())
+                .point(member.getPoint())
+                .exp(member.getExp())
+                .ottView(getOttView(member))
+                .build();
+
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("memberInfo", memberInfo);
+        dataMap.put("isRegister", isRegister);
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("status", status);
+        responseMap.put("message", message);
+        responseMap.put("data", dataMap);
+
+        return responseMap;
+    }
+
+   /* public static MemberDefaultInfoResponse create(MemberDTO member, boolean isRegister, String message) {
         return MemberDefaultInfoResponse.builder().memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .grade(member.getGrade())
@@ -37,7 +59,7 @@ public class MemberDefaultInfoResponse {
                 .isRegister(isRegister)
                 .message(message)
                 .build();
-    }
+    }*/
 
     private static List<OttView> getOttView(MemberDTO member) {
         List<OttView> ottView = new ArrayList<>();
