@@ -17,7 +17,6 @@ import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
-import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -82,7 +81,7 @@ public class MemberController {
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             System.out.println("accessToken = " + accessToken);
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(findMember, true,true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
+            return new ResponseEntity<>(MemberLoginInfoResponse.create(findMember, true,true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
             log.info("회원가입필요");
@@ -103,7 +102,7 @@ public class MemberController {
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             log.info("redis 저장 완료");
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true, true, "회원가입에 성공했습니다."), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberLoginInfoResponse.create(savedMember, true, true, "회원가입에 성공했습니다."), HttpStatus.CREATED);
         } catch (DuplicateMemberIdException | NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 

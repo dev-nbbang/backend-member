@@ -19,7 +19,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MemberDefaultInfoResponse {
+public class MemberLoginInfoResponse {
     private String memberId;
     private String nickname;
     private Grade grade;
@@ -28,7 +28,7 @@ public class MemberDefaultInfoResponse {
     private List<OttView> ottView;
 
     public static Map<String, Object> create(MemberDTO member, boolean isRegister, boolean status, String message) {
-        MemberDefaultInfoResponse memberInfo = MemberDefaultInfoResponse.builder()
+        MemberLoginInfoResponse memberInfo = MemberLoginInfoResponse.builder()
                 .memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .grade(member.getGrade())

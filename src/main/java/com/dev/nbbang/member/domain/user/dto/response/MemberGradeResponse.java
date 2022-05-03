@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,14 +17,20 @@ import lombok.NoArgsConstructor;
 public class MemberGradeResponse {
     private String memberId;
     private Grade grade;
-    private boolean status;
-    private String message;
 
-    public static MemberGradeResponse create(MemberDTO member, boolean status, String message) {
-        return MemberGradeResponse.builder()
+    public static Map<String, Object> create(MemberDTO member, boolean status, String message) {
+        MemberGradeResponse memberInfo = MemberGradeResponse.builder()
                 .memberId(member.getMemberId())
                 .grade(member.getGrade())
-                .status(status)
-                .message(message).build();
+                .build();
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("memberInfo", memberInfo);
+
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("status", status);
+        responseMap.put("message", message);
+        responseMap.put("data", dataMap);
+
+        return responseMap;
     }
 }

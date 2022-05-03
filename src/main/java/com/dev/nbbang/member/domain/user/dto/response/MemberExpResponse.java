@@ -38,7 +38,7 @@ public class MemberExpResponse {
                 .memberId(member.getMemberId())
                 .exp(member.getExp())
                 .status(status)
-                .message(message)
+                .mㅛessage(message)
                 .build();
     }*/
 }
