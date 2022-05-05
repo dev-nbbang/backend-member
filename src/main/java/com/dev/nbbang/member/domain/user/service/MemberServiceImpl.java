@@ -5,16 +5,18 @@ import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
+import com.dev.nbbang.member.domain.point.dto.PointDTO;
+import com.dev.nbbang.member.domain.point.entity.Point;
+import com.dev.nbbang.member.domain.point.entity.PointType;
+import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
+import com.dev.nbbang.member.domain.point.repository.PointRepository;
 import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
-import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
-import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
+import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.domain.user.api.util.SocialLoginIdUtil;
@@ -34,14 +36,16 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final MemberOttRepository memberOttRepository;
     private final OttViewRepository ottViewRepository;
+    private final PointRepository pointRepository;
     private final SocialTypeMatcher socialTypeMatcher;
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
 
     /**
      * 소셜 로그인 타입과 인가코드를 이용해 각 포털의 소셜 로그인을 통해 로그인한다.
+     *
      * @param socialLoginType - Enum 타입의 소셜 로그인 타입 (Google, kakao)
-     * @param code - 각 소셜 로그인 콜백 URI에 리턴해주는 인가코드
+     * @param code            - 각 소셜 로그인 콜백 URI에 리턴해주는 인가코드
      * @return memberId - 각 포털의 첫번째 이니셜과 제공하는 소셜 로그인 아이디를 합친 String 타입의 고유 아이디
      */
     public String socialLogin(SocialLoginType socialLoginType, String code) {
@@ -58,6 +62,7 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 아이디를 이용해 가입된 회원 상세 내용을 찾는다.
+     *
      * @param memberId - JWT 토큰으로 파싱한 회원 아이디
      * @return MemberDTO - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
@@ -71,6 +76,7 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 닉네임을 이용해 가입된 회원 상세 내용을 찾는다.
+     *
      * @param nickname - String 타입의 닉네임
      * @return MemberDTO - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
@@ -83,13 +89,19 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원의 상세내용과 관심 Ott 아이디를 이용해 회원을 저장하고 관심 Ott 서비스를 등록한다.
+     *
      * @param member - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
-     * @param ottId - Integer 타입의 Ott 서비스 아이디 리스트
+     * @param ottId  - Integer 타입의 Ott 서비스 아이디 리스트
      * @return MemberDTO - 새로 저장된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
     @Override
     @Transactional
-    public MemberDTO saveMember(Member member, List<Integer> ottId) {
+    public MemberDTO saveMember(Member member, List<Integer> ottId, String recommendMemberId) {
+        // 0. 회원 존재 확인
+        Optional.ofNullable(memberRepository.findByMemberId(member.getMemberId())).ifPresent(
+                exception -> {throw new DuplicateMemberIdException("이미 존재하는 회원입니다.", NbbangException.DUPLICATE_MEMBER_ID);}
+        );
+
         // 1. 회원 저장
         Member savedMember = Optional.ofNullable(memberRepository.save(member))
                 .orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
@@ -104,12 +116,27 @@ public class MemberServiceImpl implements MemberService {
         // 4. 양방향 연관 관계 매핑 (회원 - 회원OTT 양방향 관계 매핑)
         for (MemberOtt memberOtt : memberOttList) {
             memberOtt.addMember(savedMember);
+
         }
 
         // 5. 관심 OTT 저장
         List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList))
                 .orElseThrow(() -> new NoCreatedMemberOttException("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
 
+        // 6. 추천인 Point 수정해주기 (추천인 회원 찾기, 포인트 수정 ,포인트 이력 저장)
+        if(!recommendMemberId.isEmpty()) {
+            Member recommendMember = Optional.ofNullable(memberRepository.findByMemberId(recommendMemberId))
+                    .orElseThrow(() -> new NoSuchMemberException("추천인 아이디가 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+
+            // 7. 추천인 포인트 증가, 임의 500 포인트
+            recommendMember.updatePoint(recommendMemberId, 500L, PointType.INCREASE);
+
+            // 8. 포인트 이력 저장
+            Optional.ofNullable(pointRepository.save(PointDTO.toEntity(recommendMember,
+                    PointDTO.builder().usePoint(500L).pointType(PointType.INCREASE).pointDetail(savedMember.getNickname() + "님의 추천인 입력 적립").build())))
+                    .orElseThrow(() -> new NoCreatedPointDetailsException("포인트 상세이력을 저장하는데 실패했습니다.", NbbangException.NO_CREATE_POINT_DETAILS));
+
+        }
         return MemberDTO.create(savedMember);
     }
 
@@ -117,9 +144,10 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 아이디를 이용해 가입된 회원을 찾은 뒤 새로운 회원 정보로 수정하고 관심 OTT 서비스도 수정한다.
+     *
      * @param sessionMemberId - JWT 토큰으로 파싱한 세션 회원 아이디
-     * @param member - 최신 정보로 수정될 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
-     * @param ottId - Integer 타입의 Ott 서비스 아이디 리스트
+     * @param member          - 최신 정보로 수정될 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
+     * @param ottId           - Integer 타입의 Ott 서비스 아이디 리스트
      * @return MemberDTO - 최신 정보로 수정된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
     @Override
@@ -144,17 +172,22 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 닉네임을 이용해 가입된 회원인 여부를 판단한다.
+     *
      * @param nickname - String 타입의 회원 닉네임
      * @return boolean 타입 값
      */
     @Override
     public boolean duplicateNickname(String nickname) {
-        MemberDTO member = findMemberByNickname(nickname);
-        return member.getNickname().length() > 0;
+        Optional.ofNullable(memberRepository.findByNickname(nickname)).ifPresent(
+                exception -> {throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);}
+        );
+
+        return true;
     }
 
     /**
      * 닉네임을 이용해 해당 닉네임을 포함하고 있는 5명의 회원 리스트를 조회한다.
+     *
      * @param nickname - String 타입의 회원 닉네임
      * @return MemberDTO - 조회한 회원의 상세내용 리스트(memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
@@ -167,6 +200,7 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 아이디를 통해 회원 탈퇴를 진행하고, 회원 데이터를 삭제한다.
+     *
      * @param memberId - JWT 토큰에서 파싱한 회원 아이디
      */
     @Override
@@ -189,6 +223,7 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * Redis에 저장된 리프레시 토큰을 삭제시키고 서비스 로그아웃을 한다.
+     *
      * @param memberId - JWT 토크에서 파싱한 회원 아이디
      * @return boolean 타입의 값
      */
@@ -201,8 +236,9 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 아이디를 이용해 새로운 등급을 수정한다.
+     *
      * @param sessionMemberId - JWT 토큰에서 파싱한 회원 아이디
-     * @param member - 새롭게 수정될 등급을 가진 회원 객체
+     * @param member          - 새롭게 수정될 등급을 가진 회원 객체
      * @return MemberDTO 최신 정보로 수정된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
     @Override
@@ -216,8 +252,9 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 아이디를 이용해 포인트를 변경시킨다.
+     *
      * @param sessionMemberId - JWT 토큰에서 파싱한 회원 아이디
-     * @param member - 변경될 포인트를 가진 회원 객체
+     * @param member          - 변경될 포인트를 가진 회원 객체
      * @return MemberDTO 최신 정보로 수정된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
      */
     @Override
@@ -231,6 +268,7 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * DTO 타입의 회원 객체를 이용해 Redis에서 관리할 리프레시 토큰과 세션에 저장할 엑세스 토큰을 관리한다.
+     *
      * @param member DTO 타입의 회원 객체
      * @return accessToken String 타입의 엑세스 토큰
      */

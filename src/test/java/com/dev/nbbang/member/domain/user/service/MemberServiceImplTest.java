@@ -4,6 +4,9 @@ import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
+import com.dev.nbbang.member.domain.point.entity.Point;
+import com.dev.nbbang.member.domain.point.entity.PointType;
+import com.dev.nbbang.member.domain.point.repository.PointRepository;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
@@ -38,6 +41,9 @@ class MemberServiceImplTest {
 
     @Mock
     private OttViewRepository ottViewRepository;
+
+    @Mock
+    private PointRepository pointRepository;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -104,12 +110,16 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 회원 추가 정보 저장 - 성공")
     void 회원_추가_정보_저장_성공() {
         //given
-        given(memberRepository.save(any())).willReturn(testMemberBuilder());
+        Member newMember = testMemberBuilder();
+        given(memberRepository.findByMemberId(newMember.getMemberId())).willReturn(null);
+        given(memberRepository.save(any())).willReturn(newMember);
         given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(testOttView());
         given(memberOttRepository.saveAll(anyList())).willReturn(testMemberOtt());
+        given(memberRepository.findByMemberId("test")).willReturn(testRecommendMember());
+        given(pointRepository.save(any())).willReturn(testPointBuilder());
 
         // when
-        MemberDTO savedMember = memberService.saveMember(testMemberBuilder(), testOttId());
+        MemberDTO savedMember = memberService.saveMember(newMember, testOttId(), "test");
 
         //then
         assertThat(savedMember.getMemberId()).isEqualTo("Test Id");
@@ -129,7 +139,7 @@ class MemberServiceImplTest {
         given(memberRepository.save(any())).willReturn(null);
 
         // when
-        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder(), testOttId()), "회원정보 저장에 실패했습니다.");
+        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder(), testOttId(), "recommend Id"), "회원정보 저장에 실패했습니다.");
     }
 
     @Test
@@ -370,6 +380,17 @@ class MemberServiceImplTest {
         return memberOtt;
     }
 
+    private static Member testRecommendMember() {
+        return Member.builder()
+                .memberId("test")
+                .nickname("회사")
+                .point(0L)
+                .exp(0L)
+                .grade(Grade.BRONZE)
+                .partyInviteYn("Y")
+                .build();
+    }
+
     private static Member testMemberBuilder() {
         return Member.builder()
                 .memberId("Test Id")
@@ -406,5 +427,15 @@ class MemberServiceImplTest {
                 .grade(Grade.DIAMOND)
                 .memberOtt(updatedMemberOtt())
                 .partyInviteYn("N").build();
+    }
+
+    private static Point testPointBuilder() {
+        return Point.builder()
+                .member(testRecommendMember())
+                .usePoint(500L)
+                .pointDetail("test")
+                .pointType(PointType.INCREASE)
+                .build();
+
     }
 }

@@ -7,6 +7,8 @@ public enum NbbangException {
     FAIL_TO_DELETE_MEMBER("BE004", "Failed To Delete Member"),
     FAIL_TO_CREATE_AUTH_URL("BE005", "Failed To Create Social Auth Url"),
     ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),
+    DUPLICATE_MEMBER_ID("BE007", "Duplicate Member Id"),
+    DUPLICATE_NICKNAME("BE008","Duplicate Nickname"),
     FAIL_TO_ENCRYPT("BE201", "Failed To Encrypt"),
     FAIL_TO_DECRYPT("BE202", "Failed To Decrypt"),
     FAIL_TO_IMPORT_SERVER("BE203", "Failed To Import Server"),
@@ -17,8 +19,9 @@ public enum NbbangException {
     NOT_FOUND_MEMBER_OTT("BE303", "No Such A Member Ott"),
     FAIL_TO_DELETE_MEMBER_OTT("BE304", "Fail To Delete Member Ott"),
     NOT_FOUND_COUPON("BE401", "No Such a Coupon"),
-    Duplication_Coupon("BE402", "Duplication a Coupon"),
-    Already_Used_Coupon("BE403", "Already Used a Coupon");
+    DUPLICATION_COUPON("BE402", "Duplication a Coupon"),
+    ALREADY_USED_COUPON("BE403", "Already Used a Coupon"),
+    NO_CREATE_POINT_DETAILS("BE501", "Doesn't Create Point Details"),;
 
     private String code;
     private String message;

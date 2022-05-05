@@ -18,7 +18,7 @@ public class MemberRegisterRequest {
     private String memberId;
     private String nickname;
     private List<Integer> ottId;
-    private String recommendMember;
+    private String recommendMemberId;
 
     public static Member toEntity(MemberRegisterRequest request) {
         return Member.builder()

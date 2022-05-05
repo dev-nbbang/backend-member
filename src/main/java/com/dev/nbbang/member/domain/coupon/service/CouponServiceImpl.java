@@ -44,7 +44,7 @@ public class CouponServiceImpl implements CouponService {
         Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
                 .orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
         Optional<MemberCoupon> memberCoupon = memberCouponRepository.findByMemberAndCoupon(member, coupon);
-        if(memberCoupon.isPresent()) throw new DuplicationCouponException("쿠폰이 이미 존재합니다", NbbangException.Duplication_Coupon);
+        if(memberCoupon.isPresent()) throw new DuplicationCouponException("쿠폰이 이미 존재합니다", NbbangException.DUPLICATION_COUPON);
         LocalDate now = LocalDate.now();
         Date nowDate = Date.valueOf(now);
         now = now.plusDays(coupon.getExpireDay());
@@ -60,7 +60,7 @@ public class CouponServiceImpl implements CouponService {
         Member member = Optional.ofNullable(memberRepository.findByMemberId(memberId))
                 .orElseThrow(() -> new NoSuchMemberException("해당 회원이 없습니다", NbbangException.NOT_FOUND_MEMBER));
         MemberCoupon memberCoupon = memberCouponRepository.findByMemberAndCoupon(member, coupon).orElseThrow(() -> new NoSuchCouponException("해당 회원이 가지고 있는 쿠폰이 없습니다.", NbbangException.NOT_FOUND_COUPON));
-        if(memberCoupon.getUseYN() == "Y") throw new AlreadyUsedCouponException("이미 사용된 쿠폰입니다", NbbangException.Already_Used_Coupon);
+        if(memberCoupon.getUseYN() == "Y") throw new AlreadyUsedCouponException("이미 사용된 쿠폰입니다", NbbangException.ALREADY_USED_COUPON);
         memberCoupon.updateMemberCoupon(memberCoupon.getMember(), "Y");
     }
 

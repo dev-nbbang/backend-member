@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class CommonFailResponse {
+public class CommonResponse {
     private boolean status;
     private String message;
 
-    public static CommonFailResponse create(boolean status, String message) {
-        return CommonFailResponse.builder()
+    public static CommonResponse create(boolean status, String message) {
+        return CommonResponse.builder()
                 .status(status)
                 .message(message)
                 .build();

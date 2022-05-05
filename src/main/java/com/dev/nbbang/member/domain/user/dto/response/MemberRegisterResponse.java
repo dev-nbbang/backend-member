@@ -11,14 +11,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MemberRegisterResponse {
     private String memberId;
-    private boolean registerYn;
-    private boolean status;
+    private boolean isRegister;
 
-    public static MemberRegisterResponse create(String memberId, boolean registerYn, boolean status) {
+    public static MemberRegisterResponse create(String memberId, boolean isRegister) {
         return MemberRegisterResponse.builder()
                 .memberId(memberId)
-                .registerYn(registerYn)
-                .status(status)
+                .isRegister(isRegister)
                 .build();
     }
 

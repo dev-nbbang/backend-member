@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "POINT")
@@ -18,10 +18,23 @@ import java.util.ArrayList;
 public class Point {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "POINT_ID")
+    @Column(name = "POINT_ID", updatable = false)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "MEMBER_ID")
     private Member member;
+
+    @Column(name = "POINT_YMD", nullable = false)
+    private LocalDateTime pointYmd;
+
+    @Column(name = "USE_POINT")
+    private Long usePoint;
+
+    @Column(name = "POINT_DETAIL")
+    private String pointDetail;
+
+    @Column(name = "POINT_TYPE")
+    @Enumerated(EnumType.STRING)
+    private PointType pointType;
 }
