@@ -184,7 +184,6 @@ class MemberControllerTest {
     void 추가_회원_가입_실패() throws Exception {
         // given
         String uri = "/members/new";
-//        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
         given(memberService.saveMember(any(), anyList(), anyString())).willThrow(NoCreateMemberException.class);
 
         //when
@@ -194,7 +193,6 @@ class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("회원정보 저장에 실패했습니다."))
                 .andDo(print())
                 .andReturn().getResponse();
 
@@ -207,8 +205,6 @@ class MemberControllerTest {
     void 추가_회원_가입_성공() throws Exception {
         // given
         String uri = "/members/new";
-//        given(memberService.findByOttId(anyInt())).willReturn(new OttView(1, "test", "test.image"));
-//        given(memberService.saveMember(any())).willReturn(testMemberDTO());
         given(memberService.saveMember(any(), anyList(), anyString())).willReturn(testMemberDTO());
         given(memberService.manageToken(any())).willReturn("new Token");
 
@@ -639,6 +635,7 @@ class MemberControllerTest {
                 .exp(0L)
                 .point(0L)
                 .partyInviteYn("Y")
+                .memberOtt(testMemberOtt())
                 .build();
     }
 
@@ -683,6 +680,7 @@ class MemberControllerTest {
         return MemberRegisterRequest.builder().memberId("testId")
                 .nickname("testNickname")
                 .ottId(ottId)
+                .recommendMemberId("test Recommend Id")
                 .build();
     }
 

@@ -14,11 +14,13 @@ public class MemberPointResponse {
     private String memberId;
     private Long point;
     private boolean status;
+    private String message;
 
-    public static MemberPointResponse create(MemberDTO member, boolean status) {
+    public static MemberPointResponse create(MemberDTO member, boolean status, String message) {
         return MemberPointResponse.builder()
                 .memberId(member.getMemberId())
                 .point(member.getPoint())
-                .status(status).build();
+                .status(status)
+                .message(message).build();
     }
 }

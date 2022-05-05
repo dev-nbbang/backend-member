@@ -4,6 +4,7 @@ import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
 import com.dev.nbbang.member.domain.ott.dto.request.MemberOttRequest;
 import com.dev.nbbang.member.domain.ott.dto.response.MemberOttResponse;
+import com.dev.nbbang.member.domain.ott.dto.response.OttViewResponse;
 import com.dev.nbbang.member.domain.ott.exception.FailDeleteMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchMemberOttException;
@@ -11,7 +12,7 @@ import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.ott.service.MemberOttService;
 import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
-import com.dev.nbbang.member.global.dto.response.CommonFailResponse;
+import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,12 +50,11 @@ public class OttController {
             // 관심 OTT 등록
             List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(memberId, request.getOttId());
 
-
-            return new ResponseEntity<>(MemberOttResponse.create(savedMemberOtt, true), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberOttResponse.create(savedMemberOtt, true, "관심 OTT 서비스 등록에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoSuchMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - registerMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -70,11 +70,11 @@ public class OttController {
             // 관심 OTT 조회
             List<MemberOttDTO> findMemberOtt = memberOttService.findMemberOttByMemberId(memberId);
 
-            return new ResponseEntity<>(MemberOttResponse.create(findMemberOtt, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberOttResponse.create(findMemberOtt, true, "관심 OTT 서비스 조회에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - searchMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -94,7 +94,7 @@ public class OttController {
         } catch (NoSuchMemberException | NoSuchOttException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -114,7 +114,7 @@ public class OttController {
         } catch (NoSuchMemberException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -127,11 +127,12 @@ public class OttController {
             // 모든 OTT 서비스 조회
             List<OttViewDTO> findOttView = ottViewService.findAll();
 
-            return new ResponseEntity<>(findOttView, HttpStatus.OK);
+            // response 타입으로 빼기
+            return new ResponseEntity<>(OttViewResponse.createList(findOttView, true, "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException | NoSuchOttException | FailDeleteMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 }

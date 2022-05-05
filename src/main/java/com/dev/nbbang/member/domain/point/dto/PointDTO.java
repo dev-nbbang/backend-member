@@ -58,6 +58,7 @@ public class PointDTO {
                 .usePoint(pointDTO.getUsePoint())
                 .pointDetail(pointDTO.getPointDetail())
                 .pointType(pointDTO.getPointType())
+                .pointYmd(LocalDateTime.now())
                 .build();
     }
 }

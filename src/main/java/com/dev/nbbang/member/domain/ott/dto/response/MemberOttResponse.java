@@ -18,6 +18,7 @@ public class MemberOttResponse {
     private String memberId;
     private List<OttView> ottView;
     private boolean status;
+    private String message;
 
     /**
      * @apiNote 관심 OTT 등록 후 회원 아이디와 관심 OTT 내용이 들어간 리스트를 리턴
@@ -26,12 +27,16 @@ public class MemberOttResponse {
      * @return savedMemberOtt "MemberOttResponse 타입 리스트"
      */
 
-    public static MemberOttResponse create(List<MemberOttDTO> memberOttDTOList, boolean status) {
+    public static MemberOttResponse create(List<MemberOttDTO> memberOttDTOList, boolean status, String message) {
         List<OttView> ottView = new ArrayList<>();
         for (MemberOttDTO memberOttDTO : memberOttDTOList) {
             ottView.add(memberOttDTO.getOttView());
         }
 
-        return MemberOttResponse.builder().memberId(memberOttDTOList.get(0).getMember().getMemberId()).ottView(ottView).status(status).build();
+        return MemberOttResponse.builder()
+                .memberId(memberOttDTOList.get(0).getMember().getMemberId())
+                .ottView(ottView)
+                .status(status)
+                .message(message).build();
     }
 }

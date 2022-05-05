@@ -14,13 +14,9 @@ import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.dto.response.*;
-import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
-import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
+import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.global.dto.response.CommonFailResponse;
-import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
+import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +54,7 @@ public class MemberController {
             return new ResponseEntity<>(AuthResponse.create(authUrl), HttpStatus.OK);
         } catch (IllegalSocialTypeException | FailCreateAuthUrlException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -68,6 +64,7 @@ public class MemberController {
                                       @RequestParam(name = "code") String code, HttpServletResponse servletResponse) {
         log.info(">> 소셜 로그인 API 서버로부터 받은 code :: {}", code);
 
+        // 프론트 -> 소셜 서버 -> 리다이렉트 -> 프론트는 결과를 모름
         // 소셜 로그인 실패시
         String memberId = memberService.socialLogin(socialLoginType, code);
         if (memberId == null) {
@@ -78,17 +75,18 @@ public class MemberController {
         try {
             MemberDTO findMember = memberService.findMember(memberId);
 
-            // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신 (프론트 구현 후 넣어주기)
+            // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신 (프론트
+            // 구현 후 넣어주기)
             String accessToken = memberService.manageToken(findMember);
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             System.out.println("accessToken = " + accessToken);
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(findMember, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberLoginInfoResponse.create(findMember, true,true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
             log.info("회원가입필요");
 
-            return new ResponseEntity<>(MemberRegisterResponse.create(memberId, false, false), HttpStatus.OK);
+            return new ResponseEntity<>(MemberRegisterResponse.create(memberId, false), HttpStatus.OK);
         }
     }
 
@@ -104,11 +102,11 @@ public class MemberController {
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             log.info("redis 저장 완료");
 
-            return new ResponseEntity<>(MemberDefaultInfoResponse.create(savedMember, true), HttpStatus.CREATED);
-        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
+            return new ResponseEntity<>(MemberLoginInfoResponse.create(savedMember, true, true, "회원가입에 성공했습니다."), HttpStatus.CREATED);
+        } catch (DuplicateMemberIdException | NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -130,11 +128,11 @@ public class MemberController {
             // 닉네임으로 회원 조회
             MemberDTO findMember = memberService.findMemberByNickname(nickname);
 
-            return new ResponseEntity<>(MemberNicknameResponse.create(findMember, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberNicknameResponse.create(findMember, true, "추천인 조회에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - findRecommendMember] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -145,11 +143,11 @@ public class MemberController {
         try {
             boolean nicknameDup = memberService.duplicateNickname(nickname);
 
-            return new ResponseEntity<>(CommonStatusResponse.create(nicknameDup), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(nicknameDup, "사용 가능한 닉네임입니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - checkDuplicateNickname] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -161,11 +159,12 @@ public class MemberController {
         try {
             List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
 
+            // 리스트 상태값 고민
             return new ResponseEntity<>(MemberNicknameResponse.createList(findMemberList, true), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - searchNicknameList] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -180,11 +179,11 @@ public class MemberController {
             // 회원 조회
             MemberDTO findMember = memberService.findMember(memberId);
 
-            return new ResponseEntity<>(MemberGradeResponse.create(findMember, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberGradeResponse.create(findMember, true, "회원 등급 조회에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - getMemberGrade] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -199,11 +198,11 @@ public class MemberController {
             // 회원 등급 수정
             MemberDTO updatedMember = memberService.updateGrade(memberId, MemberGradeRequest.toEntity(request));
 
-            return new ResponseEntity<>(MemberGradeResponse.create(updatedMember, true), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberGradeResponse.create(updatedMember, true, "회원 등급 수정에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoCreateMemberException e) {
             log.info(" >> [Nbbang Member Controller - modifyMemberGrade] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -218,11 +217,11 @@ public class MemberController {
             // 회원 경험치 변동
             MemberDTO updatedMember = memberService.updateExp(memberId, MemberExpRequest.toEntity(request));
 
-            return new ResponseEntity<>(MemberExpResponse.create(updatedMember, true), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberExpResponse.create(updatedMember, true, "회원 경험치 변경에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoCreateMemberException e) {
             log.info(" >> [Nbbang Member Controller - modifyMemberExp] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -238,11 +237,11 @@ public class MemberController {
             // 회원 정보 불러오기
             MemberDTO findMember = memberService.findMember(memberId);
 
-            return new ResponseEntity<>(MemberProfileResponse.create(findMember, true), HttpStatus.OK);
+            return new ResponseEntity<>(MemberProfileResponse.create(findMember, true, "회원 프로필 조회에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - getMemberProfile] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -266,11 +265,11 @@ public class MemberController {
                 servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             }
 
-            return new ResponseEntity<>(MemberModifyResponse.create(updatedMember), HttpStatus.CREATED);
+            return new ResponseEntity<>(MemberModifyResponse.create(updatedMember, "회원 프로필 수정에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Member Controller - modifyMemberProfile] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
 
     }
@@ -289,7 +288,7 @@ public class MemberController {
         } catch (FailDeleteMemberException e) {
             log.info(" >> [Nbbang Member Controller - deleteMember] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(true, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(true, e.getMessage()), HttpStatus.OK);
         }
     }
 
@@ -308,7 +307,7 @@ public class MemberController {
         } catch (FailLogoutMemberException e) {
             log.info(" >> [Nbbang Member Controller - logout] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonFailResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
         }
     }
 }

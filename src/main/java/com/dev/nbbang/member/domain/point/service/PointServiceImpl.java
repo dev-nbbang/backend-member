@@ -11,7 +11,6 @@ import com.dev.nbbang.member.global.exception.NbbangException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +19,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class PointServiceImpl implements PointService {
+public class
+PointServiceImpl implements PointService {
     private final MemberRepository memberRepository;
     private final PointRepository pointRepository;
 

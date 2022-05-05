@@ -20,22 +20,15 @@ public class MemberModifyResponse {
     private String nickname;
     private List<OttView> ottView;
     private String partyInviteYn;
+    private String message;
 
-    /*public static MemberModifyResponse create(MemberDTO member) {
-        return MemberModifyResponse.builder()
-                .memberId(member.getMemberId())
-                .nickname(member.getNickname())
-                .ottView(member.getOttView())
-                .partyInviteYn(member.getPartyInviteYn())
-                .build();
-    }*/
-
-    public static MemberModifyResponse create(MemberDTO member) {
+    public static MemberModifyResponse create(MemberDTO member, String message) {
         return MemberModifyResponse.builder()
                 .memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .ottView(getOttView(member))
                 .partyInviteYn(member.getPartyInviteYn())
+                .message(message)
                 .build();
     }
 
