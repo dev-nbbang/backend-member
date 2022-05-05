@@ -2,6 +2,7 @@ package com.dev.nbbang.member.domain.point.service;
 
 import com.dev.nbbang.member.domain.point.dto.PointDTO;
 import com.dev.nbbang.member.domain.point.entity.Point;
+import com.dev.nbbang.member.domain.point.entity.PointType;
 import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
 import com.dev.nbbang.member.domain.point.repository.PointRepository;
 import com.dev.nbbang.member.domain.user.entity.Member;
@@ -44,6 +45,22 @@ PointServiceImpl implements PointService {
         // 3. 포인트 상세이력을 저장한다.
         Point savedPoint = Optional.ofNullable(pointRepository.save(PointDTO.toEntity(findMember, pointDTO)))
                 .orElseThrow(() -> new NoCreatedPointDetailsException("포인트 상세이력을 저장하는데 실패했습니다.", NbbangException.NO_CREATE_POINT_DETAILS));
+
+        return PointDTO.create(savedPoint);
+    }
+
+    @Override
+    public PointDTO updatePoint(String recommendId) {
+        // 1, 회원 아이디를 이용해 추천인 회원 찾기
+        Member recommendMember = Optional.ofNullable(memberRepository.findByMemberId(recommendId))
+                .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
+
+        // 2. 추천인 회원 500 포인트 적립
+        recommendMember.updatePoint(recommendId, 500L, PointType.INCREASE);
+
+        // 3. 포인트 상세 이력 저장
+        Point savedPoint = Optional.ofNullable(pointRepository.save(PointDTO.toEntity(recommendMember)))
+                .orElseThrow(() -> new NoCreatedPointDetailsException("추천인 적립에 실패했습니다.", NbbangException.NO_CREATE_POINT_DETAILS));
 
         return PointDTO.create(savedPoint);
     }

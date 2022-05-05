@@ -61,4 +61,15 @@ public class PointDTO {
                 .pointYmd(LocalDateTime.now())
                 .build();
     }
+
+    // 추천인 적립
+    public static Point toEntity(Member member) {
+        return Point.builder()
+                .member(member)
+                .usePoint(500L)
+                .pointDetail("추천인 적립!")
+                .pointType(PointType.INCREASE)
+                .pointYmd(LocalDateTime.now())
+                .build();
+    }
 }
