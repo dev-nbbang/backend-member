@@ -42,6 +42,7 @@ public class MemberController {
     private final JwtUtil jwtUtil;
     private final SocialTypeMatcher socialTypeMatcher;
 
+    // 인증서버로 이동
     @GetMapping(value = "/oauth/{socialLoginType}")
     @Operation(summary = "소셜 로그인 인가코드 URL", description = "소셜 로그인 인가코드 URL을 생성한다.")
     public ResponseEntity<?> socialLoginType(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType) {
@@ -58,6 +59,7 @@ public class MemberController {
         }
     }
 
+    // 인증 서버로 이동
     @GetMapping(value = "/oauth/{socialLoginType}/callback")
     @Operation(summary = "동의 정보 인증 후 리다이렉트", description = "동의 정보 인증 후 리다이렉트 URI")
     public ResponseEntity<?> callback(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
@@ -90,6 +92,7 @@ public class MemberController {
         }
     }
 
+    // 인증 서버로 이동
     @PostMapping("/new")
     @Operation(summary = "추가 회원 가입", description = "추가 회원 가입")
     public ResponseEntity<?> signUp(@RequestBody MemberRegisterRequest request, HttpServletResponse servletResponse) {
@@ -110,6 +113,7 @@ public class MemberController {
         }
     }
 
+    // 인증 서버로 이동
     @GetMapping(value = "/oauth/{socialLoginType}/test")
     @Operation(summary = "백엔드 소셜 로그인 인가 코드 요청", description = "백엔드 소셜 로그인 인가 코드 요청 테스트")
     public void test(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType, HttpServletResponse httpServletResponse) throws IOException {

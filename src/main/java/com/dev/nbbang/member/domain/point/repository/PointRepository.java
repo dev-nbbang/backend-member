@@ -13,6 +13,7 @@ public interface PointRepository extends JpaRepository<Point, Long> {
     // 데이터 불러오기 페이징 처리로 구현 (10개)
     Page<Point> findByIdLessThanAndMemberOrderByIdDesc(Long id, Member member, Pageable pageable);
 
+    // 페이징 처리 타입에 맞게 사용
     Slice<Point> findByIdGreaterThanAndMemberOrderById(Long id, Member member, Pageable pageable);
 
     // 포인트 이력 추가
