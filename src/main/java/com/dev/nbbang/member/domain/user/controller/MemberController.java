@@ -17,6 +17,7 @@ import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
+import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
 import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -202,8 +203,10 @@ public class MemberController {
             // 회원 등급 수정
             MemberDTO updatedMember = memberService.updateGrade(memberId, MemberGradeRequest.toEntity(request));
 
-            return new ResponseEntity<>(MemberGradeResponse.create(updatedMember, true, "회원 등급 수정에 성공했습니다."), HttpStatus.CREATED);
+            // 여기 부분 MemberGradeResponse랑 CommonSucessResponse 확인해서 리팩토링 진행하면 될듯!
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberGradeResponse.create(updatedMember), "회원 등급 수정에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoCreateMemberException e) {
+
             log.info(" >> [Nbbang Member Controller - modifyMemberGrade] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
