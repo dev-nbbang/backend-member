@@ -84,7 +84,7 @@ public class MemberController {
             servletResponse.setHeader("Authorization", "Bearer " + accessToken);
             System.out.println("accessToken = " + accessToken);
 
-            return new ResponseEntity<>(MemberLoginInfoResponse.create(findMember, true,true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
+            return new ResponseEntity<>(MemberLoginInfoResponse.create(findMember, true, true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
             log.info("회원가입필요");
@@ -184,8 +184,10 @@ public class MemberController {
             // 회원 조회
             MemberDTO findMember = memberService.findMember(memberId);
 
-            return new ResponseEntity<>(MemberGradeResponse.create(findMember, true, "회원 등급 조회에 성공했습니다."), HttpStatus.OK);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberGradeResponse.create(findMember), "회원 등급 조회에 성공했습니다."), HttpStatus.OK);
         } catch (NoSuchMemberException e) {
+
+
             log.info(" >> [Nbbang Member Controller - getMemberGrade] : " + e.getMessage());
 
             return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
