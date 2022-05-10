@@ -11,25 +11,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class MemberNicknameResponse {
     private String memberId;
     private String nickname;
-    private boolean status;
-    private String message;
 
-    public static MemberNicknameResponse create(MemberDTO member, boolean status, String message) {
+    @Builder
+    public MemberNicknameResponse(String memberId, String nickname) {
+        this.memberId = memberId;
+        this.nickname = nickname;
+    }
+
+    public static MemberNicknameResponse create(MemberDTO member) {
         return MemberNicknameResponse.builder()
                 .memberId(member.getMemberId())
                 .nickname(member.getNickname())
-                .status(status)
-                .message(message).build();
+                .build();
 
     }
 
-    public static List<MemberNicknameResponse> createList(List<MemberDTO> memberList, boolean status) {
+    public static List<MemberNicknameResponse> createList(List<MemberDTO> memberList) {
         List<MemberNicknameResponse> response = new ArrayList<>();
         for (MemberDTO memberDTO : memberList) {
             response.add(MemberNicknameResponse.builder()

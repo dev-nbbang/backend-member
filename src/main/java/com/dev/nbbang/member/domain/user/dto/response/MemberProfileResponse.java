@@ -27,10 +27,8 @@ public class MemberProfileResponse {
     private String billingKey;
     private String partyInviteYn;
     private List<OttView> ottView;
-    private boolean status;
-    private String message;
 
-    public static MemberProfileResponse create(MemberDTO member, boolean status, String message) {
+    public static MemberProfileResponse create(MemberDTO member) {
         return MemberProfileResponse.builder()
                 .memberId(member.getMemberId())
                 .nickname(member.getNickname())
@@ -41,8 +39,7 @@ public class MemberProfileResponse {
                 .exp(member.getExp())
                 .partyInviteYn(member.getPartyInviteYn())
                 .ottView(getOttView(member))
-                .status(status)
-                .message(message).build();
+                .build();
     }
 
     private static List<OttView> getOttView(MemberDTO member) {

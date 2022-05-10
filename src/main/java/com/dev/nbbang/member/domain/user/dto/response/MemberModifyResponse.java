@@ -12,23 +12,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Getter
 public class MemberModifyResponse {
     private String memberId;
     private String nickname;
     private List<OttView> ottView;
     private String partyInviteYn;
-    private String message;
 
-    public static MemberModifyResponse create(MemberDTO member, String message) {
+    @Builder
+    public MemberModifyResponse(String memberId, String nickname, List<OttView> ottView, String partyInviteYn) {
+        this.memberId = memberId;
+        this.nickname = nickname;
+        this.ottView = ottView;
+        this.partyInviteYn = partyInviteYn;
+    }
+
+    public static MemberModifyResponse create(MemberDTO member) {
         return MemberModifyResponse.builder()
                 .memberId(member.getMemberId())
                 .nickname(member.getNickname())
                 .ottView(getOttView(member))
                 .partyInviteYn(member.getPartyInviteYn())
-                .message(message)
                 .build();
     }
 
