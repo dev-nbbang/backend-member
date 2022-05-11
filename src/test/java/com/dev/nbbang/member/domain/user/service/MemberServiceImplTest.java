@@ -1,18 +1,16 @@
 package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.domain.point.entity.Point;
 import com.dev.nbbang.member.domain.point.entity.PointType;
-import com.dev.nbbang.member.domain.point.repository.PointRepository;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
+import com.dev.nbbang.member.domain.user.exception.DuplicateNicknameException;
 import com.dev.nbbang.member.domain.user.exception.FailDeleteMemberException;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
-import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,13 +34,7 @@ class MemberServiceImplTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private MemberOttRepository memberOttRepository;
-
-    @Mock
     private OttViewRepository ottViewRepository;
-
-    @Mock
-    private PointRepository pointRepository;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -107,46 +98,10 @@ class MemberServiceImplTest {
     }
 
     @Test
-    @DisplayName("회원 서비스 : 회원 추가 정보 저장 - 성공")
-    void 회원_추가_정보_저장_성공() {
-        //given
-        Member newMember = testMemberBuilder();
-        given(memberRepository.findByMemberId(newMember.getMemberId())).willReturn(null);
-        given(memberRepository.save(any())).willReturn(newMember);
-        given(ottViewRepository.findAllByOttIdIn(anyList())).willReturn(testOttView());
-        given(memberOttRepository.saveAll(anyList())).willReturn(testMemberOtt());
-        given(memberRepository.findByMemberId("test")).willReturn(testRecommendMember());
-        given(pointRepository.save(any())).willReturn(testPointBuilder());
-
-        // when
-        MemberDTO savedMember = memberService.saveMember(newMember, testOttId(), "test");
-
-        //then
-        assertThat(savedMember.getMemberId()).isEqualTo("Test Id");
-        assertThat(savedMember.getNickname()).isEqualTo("Test Nickname");
-        assertThat(savedMember.getPoint()).isEqualTo(0L);
-        assertThat(savedMember.getExp()).isEqualTo(0L);
-        assertThat(savedMember.getGrade()).isEqualTo(Grade.BRONZE);
-        assertThat(savedMember.getPartyInviteYn()).isEqualTo("Y");
-        assertThat(savedMember.getMemberOtt().get(0).getOttView().getOttName()).isEqualTo("test");
-        assertThat(savedMember.getMemberOtt().get(0).getOttView().getOttImage()).isEqualTo("test.image");
-    }
-
-    @Test
-    @DisplayName("회원 서비스 : 회원 추가 정보 저장 - 실패")
-    void 회원_추가_정보_저장_실패() {
-        //given
-        given(memberRepository.save(any())).willReturn(null);
-
-        // when
-        assertThrows(NoCreateMemberException.class, () -> memberService.saveMember(testMemberBuilder(), testOttId(), "recommend Id"), "회원정보 저장에 실패했습니다.");
-    }
-
-    @Test
     @DisplayName("회원 서비스 : 닉네임 중복 체크 - 성공")
     void 닉네임_중복_체크_성공() {
         // given
-        given(memberRepository.findByNickname(anyString())).willReturn(testMemberBuilder());
+        given(memberRepository.findByNickname(anyString())).willReturn(null);
 
         //when
         boolean isDuplicate = memberService.duplicateNickname("Test Nickname");
@@ -158,10 +113,10 @@ class MemberServiceImplTest {
     @DisplayName("회원 서비스 : 닉네임 중복 체크 - 실패")
     void 닉네임_중복_체크_실패() {
         // given
-        given(memberRepository.findByNickname(anyString())).willReturn(null);
+        given(memberRepository.findByNickname(anyString())).willReturn(testMemberBuilder());
 
         // when
-        assertThrows(NoSuchMemberException.class, () -> memberService.duplicateNickname("Test Nickname"), "회원이 존재하지 않습니다.");
+        assertThrows(DuplicateNicknameException.class, () -> memberService.duplicateNickname("Test Nickname"), "이미 사용중인 닉네임입니다.");
     }
 
     @Test

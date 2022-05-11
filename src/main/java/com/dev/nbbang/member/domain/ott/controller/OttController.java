@@ -4,6 +4,7 @@ import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.dto.OttViewDTO;
 import com.dev.nbbang.member.domain.ott.dto.request.MemberOttRequest;
 import com.dev.nbbang.member.domain.ott.dto.response.MemberOttResponse;
+import com.dev.nbbang.member.domain.ott.dto.response.OttViewResponse;
 import com.dev.nbbang.member.domain.ott.exception.FailDeleteMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchMemberOttException;
@@ -128,7 +129,7 @@ public class OttController {
             List<OttViewDTO> findOttView = ottViewService.findAll();
 
             // response 타입으로 빼기
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, findOttView, "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."));
+            return ResponseEntity.ok(CommonSuccessResponse.response(true, OttViewResponse.create(findOttView), "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."));
         } catch (NoSuchMemberException | NoSuchOttException | FailDeleteMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
 

@@ -2,12 +2,6 @@ package com.dev.nbbang.member.domain.user.controller;
 
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
-import com.dev.nbbang.member.domain.user.api.dto.AuthResponse;
-import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
-import com.dev.nbbang.member.domain.user.api.exception.FailCreateAuthUrlException;
-import com.dev.nbbang.member.domain.user.api.exception.IllegalSocialTypeException;
-import com.dev.nbbang.member.domain.user.api.util.SocialAuthUrl;
-import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
@@ -41,89 +35,6 @@ import java.util.*;
 public class MemberController {
     private final MemberService memberService;
     private final JwtUtil jwtUtil;
-    private final SocialTypeMatcher socialTypeMatcher;
-
-    // 인증서버로 이동
-    @GetMapping(value = "/oauth/{socialLoginType}")
-    @Operation(summary = "소셜 로그인 인가코드 URL", description = "소셜 로그인 인가코드 URL을 생성한다.")
-    public ResponseEntity<?> socialLoginType(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType) {
-        log.info(">> 사용자로부터 SNS 로그인 요청을 받음 :: {} Social Login", socialLoginType);
-
-        try {
-            // PathVariable의 소셜 타입을 인가 코드 URL 생성 (카카오, 구글)
-            SocialAuthUrl socialAuthUrl = socialTypeMatcher.findSocialAuthUrlByType(socialLoginType);
-            String authUrl = socialAuthUrl.makeAuthorizationUrl();
-            return new ResponseEntity<>(AuthResponse.create(authUrl), HttpStatus.OK);
-        } catch (IllegalSocialTypeException | FailCreateAuthUrlException e) {
-            log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
-        }
-    }
-
-    // 인증 서버로 이동
-    @GetMapping(value = "/oauth/{socialLoginType}/callback")
-    @Operation(summary = "동의 정보 인증 후 리다이렉트", description = "동의 정보 인증 후 리다이렉트 URI")
-    public ResponseEntity<?> callback(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType,
-                                      @RequestParam(name = "code") String code, HttpServletResponse servletResponse) {
-        log.info(">> 소셜 로그인 API 서버로부터 받은 code :: {}", code);
-
-        // 프론트 -> 소셜 서버 -> 리다이렉트 -> 프론트는 결과를 모름
-        // 소셜 로그인 실패시
-        String memberId = memberService.socialLogin(socialLoginType, code);
-        if (memberId == null) {
-            log.info("badRequest");
-            // Message 넘기기
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        try {
-            MemberDTO findMember = memberService.findMember(memberId);
-
-            // 회원 닉네임 수정 시 JWT 새로 생성 및 레디스 값 갱신 (프론트
-            // 구현 후 넣어주기)
-            String accessToken = memberService.manageToken(findMember);
-            servletResponse.setHeader("Authorization", "Bearer " + accessToken);
-            System.out.println("accessToken = " + accessToken);
-
-            return new ResponseEntity<>(MemberLoginInfoResponse.create(findMember, true, true, "소셜 로그인에 성공했습니다."), HttpStatus.OK);
-        } catch (NoSuchMemberException e) {
-            log.info(e.getMessage());
-            log.info("회원가입필요");
-
-            return new ResponseEntity<>(MemberRegisterResponse.create(memberId, false), HttpStatus.OK);
-        }
-    }
-
-    // 인증 서버로 이동
-    @PostMapping("/new")
-    @Operation(summary = "추가 회원 가입", description = "추가 회원 가입")
-    public ResponseEntity<?> signUp(@RequestBody MemberRegisterRequest request, HttpServletResponse servletResponse) {
-        try {
-            // 요청 데이터 엔티이에 저장
-            MemberDTO savedMember = memberService.saveMember(MemberRegisterRequest.toEntity(request), request.getOttId(), request.getRecommendMemberId());
-
-            // 회원 생성이 완료된 경우
-            String accessToken = memberService.manageToken(savedMember);
-            servletResponse.setHeader("Authorization", "Bearer " + accessToken);
-            log.info("redis 저장 완료");
-
-            return new ResponseEntity<>(MemberLoginInfoResponse.create(savedMember, true, true, "회원가입에 성공했습니다."), HttpStatus.CREATED);
-        } catch (DuplicateMemberIdException | NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
-            log.info(" >> [Nbbang Member Controller - signUp] : " + e.getMessage());
-
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
-        }
-    }
-
-    // 인증 서버로 이동
-    @GetMapping(value = "/oauth/{socialLoginType}/test")
-    @Operation(summary = "백엔드 소셜 로그인 인가 코드 요청", description = "백엔드 소셜 로그인 인가 코드 요청 테스트")
-    public void test(@PathVariable(name = "socialLoginType") SocialLoginType socialLoginType, HttpServletResponse httpServletResponse) throws IOException {
-        SocialAuthUrl socialAuthUrl = socialTypeMatcher.findSocialAuthUrlByType(socialLoginType);
-        String authUrl = socialAuthUrl.makeAuthorizationUrl();
-
-        System.out.println("authUrl = " + authUrl);
-        httpServletResponse.sendRedirect(authUrl);
-    }
 
     @GetMapping(value = "/recommend/{nickname}")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
@@ -165,7 +76,7 @@ public class MemberController {
             List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
 
             // 리스트 상태값 고민
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.createList(findMemberList), "닉네임 리스트 조회에 성공했습니다 "));
+            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.createList(findMemberList), "닉네임 리스트 조회에 성공했습니다."));
         } catch (NoSuchMemberException e) {
             log.info(" >> [Nbbang Member Controller - searchNicknameList] : " + e.getMessage());
 

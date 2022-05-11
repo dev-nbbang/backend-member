@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -92,6 +94,7 @@ class PointRepositoryTest {
                 .member(testMember())
                 .pointType(PointType.INCREASE)
                 .pointDetail("본전도 못찾았네")
+                .pointYmd(LocalDateTime.now())
                 .usePoint(500L).build();
     }
 }
