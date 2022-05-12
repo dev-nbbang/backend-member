@@ -12,8 +12,8 @@ import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.account.api.service.ImportAPI;
 import com.dev.nbbang.member.domain.account.dto.request.CardRequest;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
-import com.dev.nbbang.member.global.util.JwtUtil;
+import com.dev.nbbang.member.global.dto.response.CommonResponse;
+import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,123 +33,112 @@ public class AccountController {
     private final ImportAPI importAPI;
     private final MemberService memberService;
     private final AccountService accountService;
-    private final JwtUtil jwtUtil;
 
     @GetMapping("/")
     @Operation(description = "계좌 조회")
     public ResponseEntity<?> accountCheck(HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         String msg = "";
+
         try {
             MemberDTO member = memberService.findMember(memberId);
             if(member.getBankId()!=null && member.getBankAccount()!=null) {
                 Bank bank = accountService.findByBankId(member.getBankId());
                 String bankAccount = accountService.decrypt(member.getBankAccount());
-                return new ResponseEntity<>(AccountResponse.create(bank, bankAccount), HttpStatus.OK);
+                msg = "계좌 조회에 성공했습니다";
+                return new ResponseEntity<>(CommonSuccessResponse.response(true, AccountResponse.create(bank, bankAccount), msg), HttpStatus.OK);
             } else {
                 msg = "현재 계좌 정보가 없습니다";
                 log.info(msg);
             }
         } catch (NoSuchMemberException | FailDecryptException e){
+            msg = "서버 오류 입니다";
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(false), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, msg), HttpStatus.OK);
     }
 
     @PostMapping("/new")
     @Operation(description = "계좌 등록")
     public ResponseEntity<?> accountRegister(@RequestBody AccountRequest accountRequest, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
-        boolean status = false;
+        String memberId = req.getHeader("X-Authorization-Id");
         try {
             String bankAccountEnc = accountService.encrypt(accountRequest.getBankAccount());
             accountRequest.encBankAccount(bankAccountEnc);
             memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "계좌 등록을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailEncryptException | NoSuchMemberException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "계좌 등록에 실패했습니다"), HttpStatus.OK);
     }
 
     @PutMapping("/")
     @Operation(description = "계좌 수정")
     public ResponseEntity<?> accountUpdate(@RequestBody AccountRequest accountRequest, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
-        boolean status = false;
+        String memberId = req.getHeader("X-Authorization-Id");
         try {
             String bankAccountEnc = accountService.encrypt(accountRequest.getBankAccount());
             accountRequest.encBankAccount(bankAccountEnc);
             memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "계좌 수정을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailEncryptException | NoSuchMemberException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "계좌 수정에 실패했습니다"), HttpStatus.OK);
     }
 
     @DeleteMapping("/")
     @Operation(description = "계좌 삭제")
     public ResponseEntity<?> accountDelete(HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
-        boolean status = false;
+        String memberId = req.getHeader("X-Authorization-Id");
         try {
             memberService.deleteAccount(memberId);
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "계좌 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
         } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "계좌 삭제에 실패했습니다"), HttpStatus.OK);
     }
 
     @GetMapping("/billing")
     @Operation(description = "빌링키 조회")
     public ResponseEntity<?> billingKeyCheck(HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         try {
             MemberDTO member = memberService.findMember(memberId);
             if(member.getBillingKey() != null) {
                 String biilingKey = accountService.decrypt(member.getBillingKey());
-                return new ResponseEntity<>(BillingKeyResponse.create(biilingKey), HttpStatus.OK);
+                return new ResponseEntity<>(CommonSuccessResponse.response(true, BillingKeyResponse.create(biilingKey), "빌링키 조회를 완료했습니다"), HttpStatus.OK);
             }
         } catch (NoSuchMemberException e){
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(false), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "빌링키 조회를 실패했습니다"), HttpStatus.OK);
     }
 
     @PostMapping("/billing/new")
     @Operation(description = "빌링키 등록")
     public ResponseEntity<?> billingKeyRegister(@RequestBody CardRequest card, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         String accessToken, billingKey, billingKeyEnc;
-        boolean status = false;
         try {
             accessToken = importAPI.getAccessToken();
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
             memberService.updateBillingKey(memberId, billingKeyEnc);
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "빌링키 등록을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailImportServerException | FailIssueBillingKeyException | FailEncryptException | NoSuchMemberException e) {
             log.info("error: " + e.getMessage());
         }
-
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "빌링키 등록에 실패했습니다"), HttpStatus.OK);
     }
 
     @PutMapping("/billing")
     @Operation(description = "빌링키 수정")
     public ResponseEntity<?> billingKeyUpdate(@RequestBody CardRequest card, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         String accessToken, billingKey, billingKeyEnc, customerUidEnc, customerUid;
-        boolean status = false;
         try {
             accessToken = importAPI.getAccessToken();
             MemberDTO member = memberService.findMember(memberId);
@@ -159,20 +148,18 @@ public class AccountController {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
             memberService.updateBillingKey(memberId, billingKeyEnc);
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException | FailIssueBillingKeyException | FailEncryptException e) {
             log.info("error: " + e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "빌링키 수정에 실패했습니다"), HttpStatus.OK);
     }
 
     @DeleteMapping("/billing")
     @Operation(description = "빌링키 삭제")
     public ResponseEntity<?> billingKeyDelete(HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         String accessToken, customerUidEnc, customerUid;
-        boolean status = false;
         String msg = "";
         try {
             accessToken = importAPI.getAccessToken();
@@ -182,7 +169,7 @@ public class AccountController {
                 customerUid = accountService.decrypt(customerUidEnc);
                 importAPI.deleteBillingKey(accessToken, customerUid);
                 memberService.deleteBillingKey(memberId);
-                status = true;
+                return new ResponseEntity<>(CommonResponse.create(true, "빌링키 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
             } else {
                 msg = "billingKey가 존재하지 않습니다";
                 log.info(msg);
@@ -190,15 +177,16 @@ public class AccountController {
         } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException e) {
             log.info("error: " + e.getMessage());
             log.info("error: " + e.getClass());
+            msg = "빌링키 삭제에 실패했습니다";
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, msg), HttpStatus.OK);
     }
 
     @GetMapping("/bank")
     @Operation(description = "은행 조회")
     public ResponseEntity<?> BankCheck(HttpServletRequest req) {
         List<Bank> bankList = accountService.findAll();
-        return new ResponseEntity<>(BankListResponse.create(bankList), HttpStatus.OK);
+        return new ResponseEntity<>(CommonSuccessResponse.response(true, BankListResponse.create(bankList), "은행 조회에 성공했습니다"), HttpStatus.OK);
     }
 
 }
