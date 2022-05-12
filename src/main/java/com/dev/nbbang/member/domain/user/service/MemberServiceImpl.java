@@ -2,9 +2,7 @@ package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
-import com.dev.nbbang.member.domain.point.repository.PointRepository;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
@@ -12,7 +10,6 @@ import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
 import com.dev.nbbang.member.global.exception.NbbangException;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +23,6 @@ import java.util.Optional;
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OttViewRepository ottViewRepository;
-    private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
 
     /**
@@ -179,20 +175,6 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateMember(findMember.getMemberId(), member.getExp());
         return MemberDTO.create(findMember);
-    }
-
-    /**
-     * DTO 타입의 회원 객체를 이용해 Redis에서 관리할 리프레시 토큰과 세션에 저장할 엑세스 토큰을 관리한다.
-     *
-     * @param member DTO 타입의 회원 객체
-     * @return accessToken String 타입의 엑세스 토큰
-     */
-    @Override
-    public String manageToken(MemberDTO member) {
-        String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
-        redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
-
-        return jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
     }
 
     // 회원 계좌 수정

@@ -147,17 +147,6 @@ class MemberServiceImplTest {
         assertThrows(NoSuchMemberException.class, () -> memberService.findMemberListByNickname(nickname), "해당 닉네임을 갖는 회원이 존재하지 않습니다.");
     }
 
-    // 레디스 연결 후 테스트
-/*    @Test
-    @DisplayName("회원 서비스 : 회원 아이디로 회원 탈퇴 - 성공")
-    void 회원_아이디로_회원_탈퇴_성공() {
-        //given
-        String memberId = "test";
-
-        //when
-        memberService.deleteMember(memberId);
-    }*/
-
     @Test
     @DisplayName("회원 서비스 : 회원 아이디로 회원 탈퇴 - 실패")
     void 회원_아이디로_회원_탈퇴_실패() {
@@ -168,19 +157,6 @@ class MemberServiceImplTest {
         assertThrows(FailDeleteMemberException.class, () -> memberService.deleteMember(memberId), "회원탈퇴에 실패했습니다.");
     }
 
-    // 레디스 연결 후 테스트
-/*    @Test
-    @DisplayName("회원 서비스 : 로그아웃 성공")
-    void 로그아웃_성공() {
-        // given
-        String memberId = "K-2197723261";
-
-        // when
-        boolean logout = memberService.logout(memberId);
-
-        // then
-        assertThat(logout).isTrue();
-    }*/
     @Test
     @DisplayName("회원 서비스 : 로그아웃 실패")
     void 로그아웃_실패() {

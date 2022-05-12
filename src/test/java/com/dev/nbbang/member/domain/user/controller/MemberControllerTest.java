@@ -1,7 +1,6 @@
 package com.dev.nbbang.member.domain.user.controller;
 
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
@@ -14,8 +13,6 @@ import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.global.config.SecurityConfig;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,12 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -40,24 +34,18 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.
-        *;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = MemberController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = SecurityConfig.class)})
+@WebMvcTest(controllers = MemberController.class)
 @ExtendWith(SpringExtension.class)
-@WithMockUser
 class MemberControllerTest {
     @Autowired
     private MockMvc mvc;
 
     @MockBean
     private MemberService memberService;
-
-    @MockBean
-    private JwtUtil jwtUtil;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -182,12 +170,12 @@ class MemberControllerTest {
     void 회원_등급_조회_성공() throws Exception {
         // given
         String uri = "/members/grade";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.findMember(anyString())).willReturn(testMemberDTO());
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "testId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("testId"))
@@ -205,12 +193,12 @@ class MemberControllerTest {
     void 회원_등급_조회_실패() throws Exception {
         // given
         String uri = "/members/grade";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "testId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andDo(print())
@@ -224,12 +212,12 @@ class MemberControllerTest {
     void 회원_등급_수정_성공() throws Exception {
         //given
         String uri = "/members/grade";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.updateGrade(anyString(), any())).willReturn(updatedMemberDTO());
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "testId")
                 .content(objectMapper.writeValueAsString(testMemberGradeRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -249,12 +237,12 @@ class MemberControllerTest {
     void 회원_등급_수정_실패() throws Exception {
         //given
         String uri = "/members/grade";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.updateGrade(anyString(), any())).willThrow(NoCreateMemberException.class);
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "testId")
                 .content(objectMapper.writeValueAsString(testMemberGradeRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -271,12 +259,12 @@ class MemberControllerTest {
     void 회원_경험치_변동_성공() throws Exception {
         //given
         String uri = "/members/exp";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.updateExp(anyString(), any())).willReturn(updatedMemberDTO());
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "testId")
                 .content(objectMapper.writeValueAsString(testMemberExpRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -296,12 +284,12 @@ class MemberControllerTest {
     void 회원_경험치_변동_실패() throws Exception {
         //given
         String uri = "/members/exp";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.updateExp(anyString(), any())).willThrow(NoCreateMemberException.class);
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "testId")
                 .content(objectMapper.writeValueAsString(testMemberExpRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -318,12 +306,12 @@ class MemberControllerTest {
     void 회원_정보_불러오기_성공() throws Exception {
         //given
         String uri = "/members/profile";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.findMember(anyString())).willReturn(testMemberDTO());
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "testId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("testId"))
@@ -348,12 +336,12 @@ class MemberControllerTest {
     void 회원_정보_불러오기_실패() throws Exception {
         // given
         String uri = "/members/profile";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "testId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andDo(print())
@@ -368,14 +356,13 @@ class MemberControllerTest {
     void 회원_정보_수정하기_성공() throws Exception {
         // given
         String uri = "/members/profile";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.findMember(anyString())).willReturn(testMemberDTO());
         given(memberService.updateMember(anyString(), any(), anyList())).willReturn(updatedMemberDTO());
-        given(memberService.manageToken(any())).willReturn("update token");
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "testId")
                 .content(objectMapper.writeValueAsString(testMemberModifyRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -403,12 +390,12 @@ class MemberControllerTest {
     void 회원_정보_수정하기_실패() throws Exception {
         //given
         String uri = "/members/profile";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.updateMember(anyString(), any(), anyList())).willThrow(NoCreateMemberException.class);
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "testId")
                 .content(objectMapper.writeValueAsString(testMemberModifyRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -425,13 +412,13 @@ class MemberControllerTest {
     void 로그아웃_성공() throws Exception {
         //given
         String uri = "/members/logout";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.logout(anyString())).willReturn(true);
 
         //when
         //when
-        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken"))
+        MockHttpServletResponse response = mvc.perform(delete(uri)
+                .header("X-Authorization-Id", "testId"))
                 .andExpect(status().isNoContent())
                 .andDo(print())
                 .andReturn().getResponse();
@@ -445,12 +432,12 @@ class MemberControllerTest {
     void 로그아웃_실패() throws Exception {
         //given
         String uri = "/members/logout";
-        given(jwtUtil.getUserid(anyString())).willReturn("testId");
+        
         given(memberService.logout(anyString())).willThrow(FailLogoutMemberException.class);
 
         //when
-        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken"))
+        MockHttpServletResponse response = mvc.perform(delete(uri)
+                .header("X-Authorization-Id", "testId"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andDo(print())

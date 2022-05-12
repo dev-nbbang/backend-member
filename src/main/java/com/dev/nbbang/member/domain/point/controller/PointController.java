@@ -13,7 +13,6 @@ import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ import java.util.List;
 public class PointController {
     private final MemberService memberService;
     private final PointService pointService;
-    private final JwtUtil jwtUtil;
 
     @GetMapping
     @Operation(summary = "포인트 조회", description = "회원의 현재 포인트를 조회한다.")
@@ -43,7 +41,7 @@ public class PointController {
 
         try {
             // 회원 아이디 파싱
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 조회
             MemberDTO findMember = memberService.findMember(memberId);
@@ -63,7 +61,7 @@ public class PointController {
 
         try {
             // 회원 아이디 파싱
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 서비스에서 수정 후 포인트 엔티티에 데이터 저장
             PointDTO savePoint = pointService.updatePoint(memberId, MemberPointRequest.toDTO(request));
@@ -86,7 +84,7 @@ public class PointController {
 
         try {
             // 회원 아이디 파싱
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 포인트 상세이력 조회
             List<PointDTO> findPoint = pointService.findPointDetails(memberId, pointId, size);

@@ -4,13 +4,9 @@ import com.dev.nbbang.member.domain.coupon.entity.MemberCoupon;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.point.entity.Point;
 import com.dev.nbbang.member.domain.point.entity.PointType;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.*;
@@ -25,7 +21,7 @@ import java.util.List;
 @Builder
 @Table(name = "MEMBER")
 @EqualsAndHashCode
-public class Member implements UserDetails {
+public class Member {
     @Id
     @Column(name = "MEMBER_ID", nullable = false)
     private String memberId;
@@ -116,48 +112,5 @@ public class Member implements UserDetails {
         this.memberId = memberId;
         if(pointType == PointType.INCREASE) this.point += updatePoint;
         if(pointType == PointType.DECREASE) this.point -= updatePoint;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-        authorities.add(new SimpleGrantedAuthority("USER"));
-        return authorities;
-    }
-
-    @Override
-    public String getPassword() {
-        return null;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Override
-    public String getUsername() {
-        return memberId;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Override
-    public boolean isEnabled() {
-        return true;
     }
 }

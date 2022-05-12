@@ -34,9 +34,6 @@ public interface MemberService {
     // 경험치 변경
     MemberDTO updateExp(String memberId, Member member);
 
-    // 토큰 관리 (인증서버로 이동)
-    String manageToken(MemberDTO member);
-
     // 회원 계좌 정보 저장
     void updateAccount(String memberId, Member member);
 

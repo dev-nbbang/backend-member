@@ -14,7 +14,6 @@ import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +33,6 @@ import java.util.List;
 @RequestMapping(value = "/ott-interest")
 @Tag(name = "OTT", description = "OTT API")
 public class OttController {
-
-    private final JwtUtil jwtUtil;
     private final OttViewService ottViewService;
     private final MemberOttService memberOttService;
 
@@ -45,8 +42,8 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 등록");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 등록
             List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(memberId, request.getOttId());
@@ -65,8 +62,8 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 조회");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 조회
             List<MemberOttDTO> findMemberOtt = memberOttService.findMemberOttByMemberId(memberId);
@@ -85,8 +82,8 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 한개 삭제");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 한개 삭제
             memberOttService.deleteMemberOtt(memberId, ottId);
@@ -105,8 +102,8 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 한개 삭제");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 한개 삭제
             memberOttService.deleteAllMemberOtt(memberId);

@@ -6,13 +6,11 @@ import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
-import com.dev.nbbang.member.domain.user.dto.request.MemberRegisterRequest;
 import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -34,7 +31,6 @@ import java.util.*;
 @Tag(name = "Member", description = "Member API")
 public class MemberController {
     private final MemberService memberService;
-    private final JwtUtil jwtUtil;
 
     @GetMapping(value = "/recommend/{nickname}")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
@@ -90,7 +86,7 @@ public class MemberController {
         log.info(" >>  [Nbbang Member Service] 회원 등급 조회");
 
         try {
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 조회
             MemberDTO findMember = memberService.findMember(memberId);
@@ -111,7 +107,7 @@ public class MemberController {
         log.info(" >> [Nbbang Member Service] 회원 등급 수정");
 
         try {
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 등급 수정
             MemberDTO updatedMember = memberService.updateGrade(memberId, MemberGradeRequest.toEntity(request));
@@ -132,7 +128,7 @@ public class MemberController {
         log.info(" >> [Nbbang Member Service] 회원 경험치 변동");
 
         try {
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 경험치 변동
             MemberDTO updatedMember = memberService.updateExp(memberId, MemberExpRequest.toEntity(request));
@@ -152,7 +148,7 @@ public class MemberController {
 
         try {
             // 현재 자신만 불러오는 걸로 되었네..?
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 정보 불러오기
             MemberDTO findMember = memberService.findMember(memberId);
@@ -167,23 +163,15 @@ public class MemberController {
 
     @PutMapping("/profile")
     @Operation(description = "회원 프로필 수정하기")
-    public ResponseEntity<?> modifyMemberProfile(@RequestBody MemberModifyRequest request, HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+    public ResponseEntity<?> modifyMemberProfile(@RequestBody MemberModifyRequest request, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Member Service] 회원 프로필 수정하기");
 
         try {
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
-
-            // 변경 전 닉네임 가져오기
-            MemberDTO findMember = memberService.findMember(memberId);
+            // X-Authorization-id
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 회원 정보 수정
             MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request), request.getOttId());
-
-            // 닉네임이 변경된 경우에만 JWT 토큰 새로 갱신 및 Redis에 리프레시 토큰 저장
-            if (!findMember.getNickname().equals(updatedMember.getNickname())) {
-                String accessToken = memberService.manageToken(updatedMember);
-                servletResponse.setHeader("Authorization", "Bearer " + accessToken);
-            }
 
             return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberModifyResponse.create(updatedMember), "회원 프로필 수정에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
@@ -201,7 +189,7 @@ public class MemberController {
         log.info(" >> [Nbbang Member Service] 회원 탈퇴");
 
         try {
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
             memberService.deleteMember(memberId);
 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -218,7 +206,7 @@ public class MemberController {
         log.info(" >> [Nbbang Member Service] 로그아웃");
 
         try {
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
             boolean logout = memberService.logout(memberId);
 
             log.info("로그아웃 되었습니다 : [logout : " + logout + "]");
