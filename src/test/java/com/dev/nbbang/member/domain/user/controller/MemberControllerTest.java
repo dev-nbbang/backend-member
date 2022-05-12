@@ -18,8 +18,6 @@ import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.global.config.SecurityConfig;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

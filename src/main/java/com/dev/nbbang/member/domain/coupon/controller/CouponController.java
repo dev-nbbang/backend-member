@@ -5,8 +5,8 @@ import com.dev.nbbang.member.domain.coupon.dto.response.MemberCouponResponse;
 import com.dev.nbbang.member.domain.coupon.entity.MemberCoupon;
 import com.dev.nbbang.member.domain.coupon.exception.NoSuchCouponException;
 import com.dev.nbbang.member.domain.coupon.service.CouponService;
+import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
-import com.dev.nbbang.member.global.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,14 +24,12 @@ import java.util.List;
 @RequestMapping(value = "/coupon")
 public class CouponController {
     private final CouponService couponService;
-    private final JwtUtil jwtUtil;
     //사용자 영역
     //조회
     @GetMapping(value = "/")
     @Operation(description = "사용자의 쿠폰리스트 조회")
     public ResponseEntity<?> couponList(HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         try {
             List<MemberCoupon> memberCouponList = couponService.memberCouponList(memberId);
             return new ResponseEntity<>(MemberCouponResponse.createList(memberCouponList), HttpStatus.OK);
@@ -44,47 +42,43 @@ public class CouponController {
     @PostMapping(value = "/new")
     @Operation
     public ResponseEntity<?> saveCoupon(@RequestBody CouponRequest couponRequest, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         boolean status = false;
         try {
             couponService.saveMemberCoupon(memberId, couponRequest.getCouponId());
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "쿠폰 저장했습니다"), HttpStatus.CREATED);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "쿠폰 저장에 실패했습니다"), HttpStatus.OK);
     }
     //사용
     @PutMapping(value = "/{couponId}")
     @Operation(description = "사용자의 쿠폰 사용 처리")
     public ResponseEntity<?> useCoupon(@PathVariable int couponId, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
+        String memberId = req.getHeader("X-Authorization-Id");
         boolean status = false;
         try {
             couponService.updateMemberCoupon(memberId, couponId);
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "쿠폰을 사용했습니다"), HttpStatus.CREATED);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "쿠폰 사용에 실패했습니다"), HttpStatus.OK);
     }
 
     //삭제
     @DeleteMapping(value = "/{couponId}")
     @Operation(description = "사용자의 쿠폰 삭제")
     public ResponseEntity<?> deleteCoupon(@PathVariable int couponId, HttpServletRequest req) {
-        String token = req.getHeader("Authorization").substring(7);
-        String memberId = jwtUtil.getUserid(token);
-        boolean status = false;
+        String memberId = req.getHeader("X-Authorization-Id");
         try {
             couponService.deleteMemberCoupon(memberId, couponId);
-            status = true;
+            return new ResponseEntity<>(CommonResponse.create(true, "쿠폰 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(status), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "쿠폰 삭제에 실패했습니다"), HttpStatus.OK);
     }
 
     //관리자 영역
