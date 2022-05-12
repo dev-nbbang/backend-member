@@ -382,7 +382,6 @@ class MemberControllerTest {
 
         //then
         assertThat(response.getStatus()).isEqualTo(HttpStatus.CREATED.value());
-        assertThat(response.getHeader("Authorization")).isEqualTo("Bearer update token");
     }
 
     @Test
