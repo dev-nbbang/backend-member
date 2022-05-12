@@ -19,12 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -38,15 +35,13 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = OttController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = SecurityConfig.class)})
+@WebMvcTest(controllers = OttController.class)
 @ExtendWith(SpringExtension.class)
-@WithMockUser
 class OttControllerTest {
     @Autowired
     private MockMvc mvc;
@@ -60,9 +55,6 @@ class OttControllerTest {
     @MockBean
     private OttViewService ottViewService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
-
     @Test
     @DisplayName("OTT 컨트롤러 : 관심 OTT 등록 성공")
     void 관심_OTT_등록_성공() throws Exception {
@@ -72,23 +64,23 @@ class OttControllerTest {
          * 2. 회원 아이디 및 OTT ID를 통해 관심 OTT 등록하기
          */
         String uri = "/ott-interest/new";
-        given(jwtUtil.getUserid(anyString())).willReturn("Test Id");
         given(memberOttService.saveMemberOtt(anyString(), anyList())).willReturn(testMemberOttDTO());
 
         // when
-        MockHttpServletResponse response = mvc.perform(post(uri).with(csrf())
+        MockHttpServletResponse response = mvc.perform(post(uri)
                 .content(objectMapper.writeValueAsString(testRequest()))
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("Test Id"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottId").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottName").value("test2"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottImage").value("test2.image"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottId").value(3))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottName").value("test3"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottImage").value("test3.image"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("Test Id"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[0].ottId").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[0].ottName").value("test2"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[0].ottImage").value("test2.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[1].ottId").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[1].ottName").value("test3"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[1].ottImage").value("test3.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("관심 OTT 서비스 등록에 성공했습니다."))
                 .andDo(print())
                 .andReturn().getResponse();
 
@@ -105,14 +97,13 @@ class OttControllerTest {
          * 2. 회원 아이디 및 OTT ID를 통해 관심 OTT 등록하기 (예외 발생) NoCreatedMemberOttException
          */
         String uri = "/ott-interest/new";
-        given(jwtUtil.getUserid(anyString())).willReturn("Test Id");
         given(memberOttService.saveMemberOtt(anyString(), anyList())).willThrow(NoCreatedMemberOttException.class);
 
         // when
-        MockHttpServletResponse response = mvc.perform(post(uri).with(csrf())
+        MockHttpServletResponse response = mvc.perform(post(uri)
                 .content(objectMapper.writeValueAsString(testRequest()))
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andExpect(status().isOk())
                 .andDo(print()).andReturn().getResponse();
@@ -130,21 +121,21 @@ class OttControllerTest {
          * 2. 회원 아이디를 통해 관심 OTT 모두 조회하기
          */
         String uri = "/ott-interest";
-        given(jwtUtil.getUserid(anyString())).willReturn("Test Id");
         given(memberOttService.findMemberOttByMemberId(anyString())).willReturn(testMemberOttDTO());
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("Test Id"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottId").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottName").value("test2"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[0].ottImage").value("test2.image"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottId").value(3))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottName").value("test3"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.ottView.[1].ottImage").value("test3.image"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("Test Id"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[0].ottId").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[0].ottName").value("test2"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[0].ottImage").value("test2.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[1].ottId").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[1].ottName").value("test3"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.ottView.[1].ottImage").value("test3.image"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("관심 OTT 서비스 조회에 성공했습니다."))
                 .andDo(print())
                 .andReturn().getResponse();
 
@@ -161,12 +152,11 @@ class OttControllerTest {
          * 2. 회원 아이디를 통해 관심 OTT 모두 조회하기 (예외 발생) NoSuchMemberOttException
          */
         String uri = "/ott-interest";
-        given(jwtUtil.getUserid(anyString())).willReturn("Test Id");
         given(memberOttService.findMemberOttByMemberId(anyString())).willThrow(NoSuchMemberOttException.class);
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andExpect(status().isOk())
                 .andDo(print()).andReturn().getResponse();
@@ -185,11 +175,10 @@ class OttControllerTest {
          */
         String uri = "/ott-interest";
         String memberId = "Test Id";
-        given(jwtUtil.getUserid(anyString())).willReturn(memberId);
 
         // when
-        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken"))
+        MockHttpServletResponse response = mvc.perform(delete(uri)
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(status().isNoContent())
                 .andDo(print()).andReturn().getResponse();
 
@@ -207,12 +196,11 @@ class OttControllerTest {
          */
         String uri = "/ott-interest";
         String memberId = "Test Id";
-        given(jwtUtil.getUserid(anyString())).willReturn(memberId);
         doThrow(NoSuchMemberOttException.class).when(memberOttService).deleteAllMemberOtt(memberId);
 
         // when
-        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken"))
+        MockHttpServletResponse response = mvc.perform(delete(uri)
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andExpect(status().isOk())
                 .andDo(print()).andReturn().getResponse();
@@ -231,11 +219,10 @@ class OttControllerTest {
         String uri = "/ott-interest/1";
         String memberId = "Test Id";
         Integer ottId = 1;
-        given(jwtUtil.getUserid(anyString())).willReturn(memberId);
 
         // when
-        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken"))
+        MockHttpServletResponse response = mvc.perform(delete(uri)
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(status().isNoContent())
                 .andDo(print()).andReturn().getResponse();
 
@@ -254,12 +241,11 @@ class OttControllerTest {
         String uri = "/ott-interest/1";
         String memberId = "Test Id";
         Integer ottId = 1;
-        given(jwtUtil.getUserid(anyString())).willReturn(memberId);
         doThrow(NoSuchMemberOttException.class).when(memberOttService).deleteMemberOtt(memberId, ottId);
 
         // when
-        MockHttpServletResponse response = mvc.perform(delete(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken"))
+        MockHttpServletResponse response = mvc.perform(delete(uri)
+                .header("X-Authorization-Id", "Test Id"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andExpect(status().isOk())
                 .andDo(print()).andReturn().getResponse();
@@ -282,15 +268,17 @@ class OttControllerTest {
         // when
         MockHttpServletResponse response = mvc.perform(get(uri))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.[0].ottId").value(1))
-                .andExpect(jsonPath("$.[0].ottName").value("test"))
-                .andExpect(jsonPath("$.[0].ottImage").value("test.image"))
-                .andExpect(jsonPath("$.[1].ottId").value(2))
-                .andExpect(jsonPath("$.[1].ottName").value("test2"))
-                .andExpect(jsonPath("$.[1].ottImage").value("test2.image"))
-                .andExpect(jsonPath("$.[2].ottId").value(3))
-                .andExpect(jsonPath("$.[2].ottName").value("test3"))
-                .andExpect(jsonPath("$.[2].ottImage").value("test3.image"))
+                .andExpect(jsonPath("$.status").value(true))
+                .andExpect(jsonPath("$.data.ottView.[0].ottId").value(1))
+                .andExpect(jsonPath("$.data.ottView.[0].ottName").value("test"))
+                .andExpect(jsonPath("$.data.ottView.[0].ottImage").value("test.image"))
+                .andExpect(jsonPath("$.data.ottView.[1].ottId").value(2))
+                .andExpect(jsonPath("$.data.ottView.[1].ottName").value("test2"))
+                .andExpect(jsonPath("$.data.ottView.[1].ottImage").value("test2.image"))
+                .andExpect(jsonPath("$.data.ottView.[2].ottId").value(3))
+                .andExpect(jsonPath("$.data.ottView.[2].ottName").value("test3"))
+                .andExpect(jsonPath("$.data.ottView.[2].ottImage").value("test3.image"))
+                .andExpect(jsonPath("$.message").value("등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."))
                 .andDo(print())
                 .andReturn().getResponse();
 

@@ -16,12 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -33,14 +31,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = PointController.class, excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = SecurityConfig.class)})
+@WebMvcTest(controllers = PointController.class)
 @ExtendWith(SpringExtension.class)
-@WithMockUser
 class PointControllerTest {
     @Autowired
     private MockMvc mvc;
@@ -54,8 +50,6 @@ class PointControllerTest {
     @MockBean
     private PointService pointService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
 
     @Test
     @DisplayName("포인트 컨트롤러 : 포인트 조회 성공")
@@ -67,15 +61,16 @@ class PointControllerTest {
          */
         // given
         String uri = "/point";
-        given(jwtUtil.getUserid(anyString())).willReturn("test Id");
         given(memberService.findMember(anyString())).willReturn(testMember());
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "test Id"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("test Id"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.point").value(150))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("test Id"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.point").value(150))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("회원의 현재 포인트 조회에 성공했습니다."))
                 .andDo(print())
                 .andReturn().getResponse();
 
@@ -93,12 +88,11 @@ class PointControllerTest {
          */
         // given
         String uri = "/point";
-        given(jwtUtil.getUserid(anyString())).willReturn("test Id");
         given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken"))
+                .header("X-Authorization-Id", "test Id"))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
                 .andDo(print())
@@ -118,18 +112,19 @@ class PointControllerTest {
          */
         // given
         String uri = "/point";
-        given(jwtUtil.getUserid(anyString())).willReturn("test Id");
         given(pointService.updatePoint(anyString(), any())).willReturn(testIncreasePoint());
 
         //when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "test Id")
                 .content(objectMapper.writeValueAsString(testRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("test Id"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.usePoint").value(500))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointType").value("INCREASE"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetail").value("포인트 적립 테스트"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("test Id"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.usePoint").value(500))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointType").value("INCREASE"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetail").value("포인트 적립 테스트"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("포인트 적립/사용에 성공했습니다."))
                 .andExpect(status().isCreated())
                 .andDo(print())
                 .andReturn().getResponse();
@@ -149,12 +144,11 @@ class PointControllerTest {
          */
         // given
         String uri = "/point";
-        given(jwtUtil.getUserid(anyString())).willReturn("test Id");
         given(pointService.updatePoint(anyString(), any())).willThrow(NoCreatedPointDetailsException.class);
 
         // when
-        MockHttpServletResponse response = mvc.perform(put(uri).with(csrf())
-                .header("Authorization", "Bearer testAccessToken")
+        MockHttpServletResponse response = mvc.perform(put(uri)
+                .header("X-Authorization-Id", "test Id")
                 .content(objectMapper.writeValueAsString(testRequest()))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(false))
@@ -175,21 +169,22 @@ class PointControllerTest {
          */
         // given
         String uri = "/point/details";
-        given(jwtUtil.getUserid(anyString())).willReturn("test Id");
         given(pointService.findPointDetails(anyString(), anyLong(), anyInt())).willReturn(testPointDetails());
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken")
+                .header("X-Authorization-Id", "test Id")
                 .param("pointId","2")
                 .param("size","3"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.memberId").value("test Id"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetails.[0].pointType").value("INCREASE"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetails.[0].usePoint").value(500))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetails.[0].pointDetail").value("포인트 적립 테스트"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetails.[1].pointType").value("DECREASE"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetails.[1].usePoint").value(500))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.pointDetails.[1].pointDetail").value("포인트 사용 테스트"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("test Id"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetails.[0].pointType").value("INCREASE"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetails.[0].usePoint").value(500))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetails.[0].pointDetail").value("포인트 적립 테스트"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetails.[1].pointType").value("DECREASE"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetails.[1].usePoint").value(500))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetails.[1].pointDetail").value("포인트 사용 테스트"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("회원의 포인트 상세이력 조회에 성공했습니다."))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
@@ -207,12 +202,11 @@ class PointControllerTest {
          */
         // given
         String uri = "/point/details";
-        given(jwtUtil.getUserid(anyString())).willReturn("test Id");
         given(pointService.findPointDetails(anyString(), anyLong(), anyInt())).willThrow(NoSuchMemberException.class);
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
-                .header("Authorization", "Bearer testAccessToken")
+                .header("X-Authorization-Id", "test Id")
                 .param("pointId","2")
                 .param("size","3"))
                 .andExpect(status().isOk())

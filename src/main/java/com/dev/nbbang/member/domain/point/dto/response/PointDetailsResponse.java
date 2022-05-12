@@ -16,15 +16,11 @@ import java.util.List;
 public class PointDetailsResponse {
     private String memberId;
     private List<PointDTO> pointDetails;
-    private boolean status;
-    private String message;
 
-    public static PointDetailsResponse create(String memberId, List<PointDTO> points, boolean status, String message) {
+    public static PointDetailsResponse create(String memberId, List<PointDTO> points) {
         return PointDetailsResponse.builder()
                 .memberId(memberId)
                 .pointDetails(customDetail(points))
-                .status(status)
-                .message(message)
                 .build();
     }
 

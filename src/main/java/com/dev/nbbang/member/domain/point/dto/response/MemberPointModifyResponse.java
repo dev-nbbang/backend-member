@@ -20,18 +20,14 @@ public class MemberPointModifyResponse {
     private String pointDetail;
     private PointType pointType;
     private LocalDateTime pointYmd;
-    private boolean status;
-    private String message;
 
-    public static MemberPointModifyResponse create(PointDTO pointDetails, boolean status, String message) {
+    public static MemberPointModifyResponse create(PointDTO pointDetails) {
         return MemberPointModifyResponse.builder()
                 .memberId(pointDetails.getMember().getMemberId())
                 .usePoint(pointDetails.getUsePoint())
                 .pointDetail(pointDetails.getPointDetail())
                 .pointType(pointDetails.getPointType())
                 .pointYmd(pointDetails.getPointYmd())
-                .status(status)
-                .message(message)
                 .build();
     }
 }

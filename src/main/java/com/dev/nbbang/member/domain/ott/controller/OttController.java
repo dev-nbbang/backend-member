@@ -13,6 +13,7 @@ import com.dev.nbbang.member.domain.ott.service.MemberOttService;
 import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
+import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,6 @@ import java.util.List;
 @RequestMapping(value = "/ott-interest")
 @Tag(name = "OTT", description = "OTT API")
 public class OttController {
-
-    private final JwtUtil jwtUtil;
     private final OttViewService ottViewService;
     private final MemberOttService memberOttService;
 
@@ -43,17 +42,17 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 등록");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 등록
             List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(memberId, request.getOttId());
 
-            return new ResponseEntity<>(MemberOttResponse.create(savedMemberOtt, true, "관심 OTT 서비스 등록에 성공했습니다."), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberOttResponse.create(savedMemberOtt), "관심 OTT 서비스 등록에 성공했습니다."), HttpStatus.CREATED);
         } catch (NoSuchMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - registerMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
         }
     }
 
@@ -63,17 +62,17 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 조회");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 조회
             List<MemberOttDTO> findMemberOtt = memberOttService.findMemberOttByMemberId(memberId);
 
-            return new ResponseEntity<>(MemberOttResponse.create(findMemberOtt, true, "관심 OTT 서비스 조회에 성공했습니다."), HttpStatus.OK);
+            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberOttResponse.create(findMemberOtt), "관심 OTT 서비스 조회에 성공했습니다."));
         } catch (NoSuchMemberException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - searchMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
         }
     }
 
@@ -83,8 +82,8 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 한개 삭제");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 한개 삭제
             memberOttService.deleteMemberOtt(memberId, ottId);
@@ -103,8 +102,8 @@ public class OttController {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 한개 삭제");
 
         try {
-            // 회원 아이디 토큰 분해
-            String memberId = jwtUtil.getUserid(servletRequest.getHeader("Authorization").substring(7));
+            // 인증헤더에서 아이디 가져오기
+            String memberId = servletRequest.getHeader("X-Authorization-Id");
 
             // 관심 OTT 한개 삭제
             memberOttService.deleteAllMemberOtt(memberId);
@@ -113,7 +112,7 @@ public class OttController {
         } catch (NoSuchMemberException | NoSuchMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
         }
     }
 
@@ -127,11 +126,11 @@ public class OttController {
             List<OttViewDTO> findOttView = ottViewService.findAll();
 
             // response 타입으로 빼기
-            return new ResponseEntity<>(OttViewResponse.createList(findOttView, true, "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."), HttpStatus.OK);
+            return ResponseEntity.ok(CommonSuccessResponse.response(true, OttViewResponse.create(findOttView), "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."));
         } catch (NoSuchMemberException | NoSuchOttException | FailDeleteMemberOttException e) {
             log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
 
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
+            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
         }
     }
 }

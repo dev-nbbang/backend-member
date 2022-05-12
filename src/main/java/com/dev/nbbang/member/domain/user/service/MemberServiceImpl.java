@@ -2,23 +2,14 @@ package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
-import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
-import com.dev.nbbang.member.domain.ott.repository.MemberOttRepository;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
-import com.dev.nbbang.member.domain.point.dto.PointDTO;
-import com.dev.nbbang.member.domain.point.entity.PointType;
-import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
-import com.dev.nbbang.member.domain.point.repository.PointRepository;
-import com.dev.nbbang.member.domain.user.api.entity.SocialLoginType;
-import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
-import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
+
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
-import com.dev.nbbang.member.domain.user.api.util.SocialLoginIdUtil;
 import com.dev.nbbang.member.global.exception.NbbangException;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
@@ -32,31 +23,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
-    private final MemberOttRepository memberOttRepository;
     private final OttViewRepository ottViewRepository;
-    private final PointRepository pointRepository;
-    private final SocialTypeMatcher socialTypeMatcher;
-    private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
-
-    /**
-     * 소셜 로그인 타입과 인가코드를 이용해 각 포털의 소셜 로그인을 통해 로그인한다.
-     *
-     * @param socialLoginType - Enum 타입의 소셜 로그인 타입 (Google, kakao)
-     * @param code            - 각 소셜 로그인 콜백 URI에 리턴해주는 인가코드
-     * @return memberId - 각 포털의 첫번째 이니셜과 제공하는 소셜 로그인 아이디를 합친 String 타입의 고유 아이디
-     */
-    public String socialLogin(SocialLoginType socialLoginType, String code) {
-        SocialOauth socialOauth = socialTypeMatcher.findSocialOauthByType(socialLoginType);
-        try {
-            String socialLoginId = socialOauth.requestUserInfo(code);
-            SocialLoginIdUtil socialLoginIdUtil = new SocialLoginIdUtil(socialLoginType, socialLoginId);
-            return socialLoginIdUtil.getMemberId();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "소셜 로그인 실패";
-        }
-    }
 
     /**
      * 회원 아이디를 이용해 가입된 회원 상세 내용을 찾는다.
@@ -85,61 +53,7 @@ public class MemberServiceImpl implements MemberService {
         return MemberDTO.create(member);
     }
 
-    /**
-     * 회원의 상세내용과 관심 Ott 아이디를 이용해 회원을 저장하고 관심 Ott 서비스를 등록한다.
-     *
-     * @param member - 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
-     * @param ottId  - Integer 타입의 Ott 서비스 아이디 리스트
-     * @return MemberDTO - 새로 저장된 회원의 상세내용 (memberId, nickname, bankId, bankAccount, grade, point, exp, billingKey, partyInviteYn, memberOtt)
-     */
-    @Override
-    @Transactional
-    public MemberDTO saveMember(Member member, List<Integer> ottId, String recommendMemberId) {
-        // 0. 회원 존재 확인
-        Optional.ofNullable(memberRepository.findByMemberId(member.getMemberId())).ifPresent(
-                exception -> {throw new DuplicateMemberIdException("이미 존재하는 회원입니다.", NbbangException.DUPLICATE_MEMBER_ID);}
-        );
-
-        // 1. 회원 저장
-        Member savedMember = Optional.ofNullable(memberRepository.save(member))
-                .orElseThrow(() -> new NoCreateMemberException("회원정보 저장에 실패했습니다.", NbbangException.NO_CREATE_MEMBER));
-
-        // 2. OTT 찾기
-        List<OttView> findOttViews = Optional.ofNullable(ottViewRepository.findAllByOttIdIn(ottId))
-                .orElseThrow(() -> new NoSuchOttException("존재하지 않는 OTT 플랫폼입니다.", NbbangException.NOT_FOUND_OTT));
-
-        // 3. MemberOtt 엔티티로 변경
-        List<MemberOtt> memberOttList = MemberOttDTO.toEntityList(savedMember, findOttViews);
-
-        // 4. 양방향 연관 관계 매핑 (회원 - 회원OTT 양방향 관계 매핑)
-        for (MemberOtt memberOtt : memberOttList) {
-            memberOtt.addMember(savedMember);
-
-        }
-
-        // 5. 관심 OTT 저장
-        List<MemberOtt> savedMemberOtt = Optional.of(memberOttRepository.saveAll(memberOttList))
-                .orElseThrow(() -> new NoCreatedMemberOttException("관심 OTT 등록을 실패했습니다.", NbbangException.NO_CREATE_MEMBER_OTT));
-
-        // 6. 추천인 Point 수정해주기 (추천인 회원 찾기, 포인트 수정 ,포인트 이력 저장)
-        if(!recommendMemberId.isEmpty()) {
-            Member recommendMember = Optional.ofNullable(memberRepository.findByMemberId(recommendMemberId))
-                    .orElseThrow(() -> new NoSuchMemberException("추천인 아이디가 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
-
-            // 7. 추천인 포인트 증가, 임의 500 포인트
-            recommendMember.updatePoint(recommendMemberId, 500L, PointType.INCREASE);
-
-            // 8. 포인트 이력 저장
-            Optional.ofNullable(pointRepository.save(PointDTO.toEntity(recommendMember,
-                    PointDTO.builder().usePoint(500L).pointType(PointType.INCREASE).pointDetail(savedMember.getNickname() + "님의 추천인 입력 적립").build())))
-                    .orElseThrow(() -> new NoCreatedPointDetailsException("포인트 상세이력을 저장하는데 실패했습니다.", NbbangException.NO_CREATE_POINT_DETAILS));
-
-        }
-        return MemberDTO.create(savedMember);
-    }
-
     // 회원 정보 업데이트 (Member_Ott 구분)
-
     /**
      * 회원 아이디를 이용해 가입된 회원을 찾은 뒤 새로운 회원 정보로 수정하고 관심 OTT 서비스도 수정한다.
      *
@@ -262,20 +176,6 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         findMember.updateMember(findMember.getMemberId(), member.getExp());
         return MemberDTO.create(findMember);
-    }
-
-    /**
-     * DTO 타입의 회원 객체를 이용해 Redis에서 관리할 리프레시 토큰과 세션에 저장할 엑세스 토큰을 관리한다.
-     *
-     * @param member DTO 타입의 회원 객체
-     * @return accessToken String 타입의 엑세스 토큰
-     */
-    @Override
-    public String manageToken(MemberDTO member) {
-        String refreshToken = jwtUtil.generateRefreshToken(member.getMemberId(), member.getNickname());
-        redisUtil.setData(member.getMemberId(), refreshToken, JwtUtil.REFRESH_TOKEN_VALIDATION_SECOND);
-
-        return jwtUtil.generateAccessToken(member.getMemberId(), member.getNickname());
     }
 
     // 회원 계좌 수정
