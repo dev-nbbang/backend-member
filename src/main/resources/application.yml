@@ -36,6 +36,5 @@ management:
 #imp.client.key=4738003304274604
 #imp.client.secret=15dcccbe238c258980c02f4b4fd7d10060887cd418bc0ad086f36873856b7746c62d7739eef780d1
 
-#
 #springdoc.api-docs.path=/api-docs
 #springdoc.swagger-ui.path=/swagger-ui.html

@@ -33,7 +33,7 @@ public class CouponController {
         String memberId = req.getHeader("X-Authorization-Id");
         try {
             List<MemberCoupon> memberCouponList = couponService.memberCouponList(memberId);
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberCouponResponse.createList(memberCouponList), "사용자의 쿠폰 리스트 조회 성공했습니다"), HttpStatus.OK);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberCouponResponse.createList(memberCouponList), "사용자의 쿠폰 리스트 불러오는데 성공했습니다"), HttpStatus.OK);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
