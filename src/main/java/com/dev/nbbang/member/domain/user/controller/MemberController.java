@@ -196,7 +196,7 @@ public class MemberController {
         } catch (FailDeleteMemberException e) {
             log.info(" >> [Nbbang Member Controller - deleteMember] : " + e.getMessage());
 
-            return ResponseEntity.ok(CommonResponse.create(true, e.getMessage()));
+            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
         }
     }
 

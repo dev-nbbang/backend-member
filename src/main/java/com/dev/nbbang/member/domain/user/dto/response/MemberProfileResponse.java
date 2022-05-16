@@ -38,8 +38,7 @@ public class MemberProfileResponse {
                 .point(member.getPoint())
                 .exp(member.getExp())
                 .partyInviteYn(member.getPartyInviteYn())
-                .ottView(getOttView(member))
-                .build();
+                .ottView(getOttView(member)).build();
     }
 
     private static List<OttView> getOttView(MemberDTO member) {
