@@ -7,6 +7,7 @@ import com.dev.nbbang.member.domain.coupon.exception.NoSuchCouponException;
 import com.dev.nbbang.member.domain.coupon.service.CouponService;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
+import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +33,11 @@ public class CouponController {
         String memberId = req.getHeader("X-Authorization-Id");
         try {
             List<MemberCoupon> memberCouponList = couponService.memberCouponList(memberId);
-            return new ResponseEntity<>(MemberCouponResponse.createList(memberCouponList), HttpStatus.OK);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberCouponResponse.createList(memberCouponList), "사용자의 쿠폰 리스트 조회 성공했습니다"), HttpStatus.OK);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonStatusResponse.create(false), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.create(false, "사용자의 쿠폰 리스트 정보를 불러오는데 실패했습니다"), HttpStatus.OK);
     }
     //저장
     @PostMapping(value = "/new")
