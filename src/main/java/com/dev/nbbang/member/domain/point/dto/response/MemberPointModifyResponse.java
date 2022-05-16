@@ -16,18 +16,14 @@ import java.time.LocalDateTime;
 @Getter
 public class MemberPointModifyResponse {
     private String memberId;
-    private Long usePoint;
-    private String pointDetail;
-    private PointType pointType;
+    private Long point;
+
     private LocalDateTime pointYmd;
 
     public static MemberPointModifyResponse create(PointDTO pointDetails) {
         return MemberPointModifyResponse.builder()
                 .memberId(pointDetails.getMember().getMemberId())
-                .usePoint(pointDetails.getUsePoint())
-                .pointDetail(pointDetails.getPointDetail())
-                .pointType(pointDetails.getPointType())
-                .pointYmd(pointDetails.getPointYmd())
+                .point(pointDetails.getMember().getPoint())
                 .build();
     }
 }
