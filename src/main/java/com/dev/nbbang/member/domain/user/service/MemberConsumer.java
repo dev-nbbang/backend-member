@@ -1,3 +1,4 @@
+/*
 package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.ott.service.MemberOttService;
@@ -55,3 +56,4 @@ public class MemberConsumer {
         }
     }
 }
+*/
