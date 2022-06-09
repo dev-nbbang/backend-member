@@ -1,4 +1,3 @@
-/*
 package com.dev.nbbang.member.domain.user.service;
 
 import com.dev.nbbang.member.domain.ott.service.MemberOttService;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -33,10 +33,14 @@ public class MemberConsumer {
 
         KafkaReceiveRequest receivedData = objectMapper.readValue(receivedMessage, KafkaReceiveRequest.class);
 
-        if(!receivedData.getRecommendId().isEmpty()) {
-            pointService.updatePoint(receivedData.getRecommendId());
+        // 메세지가 중복해서 처리될 수도 있는 경우를 처리하자.
+        if(receivedData.getRecommendMemberId().length() > 0) {
+            // 포인트의 경우 memberId로 이력에서 조회? 포인트 이력 중복 처리 로직 고민
+            pointService.updatePoint(receivedData.getRecommendMemberId());
         }
-        if(!receivedData.getMemberId().isEmpty() && !receivedData.getOttId().isEmpty()) {
+        if(receivedData.getMemberId().length() > 0 && !receivedData.getOttId().isEmpty()) {
+            // 관심 OTT의 경우 중복 처리해도 상관이 없음 (있는 경우 delete 로직을 추가해줄까?)
+
             memberOttService.saveMemberOtt(receivedData.getMemberId(), receivedData.getOttId());
         }
     }
@@ -45,15 +49,15 @@ public class MemberConsumer {
     @NoArgsConstructor
     static class KafkaReceiveRequest {
         private String memberId;
-        private String recommendId;
+        private String recommendMemberId;
         private List<Integer> ottId;
 
         @Builder
-        public KafkaReceiveRequest(String memberId, String recommendId, List<Integer> ottId) {
+        public KafkaReceiveRequest(String memberId, String recommendMemberId, List<Integer> ottId) {
             this.memberId = memberId;
-            this.recommendId = recommendId;
+            this.recommendMemberId = recommendMemberId;
             this.ottId = ottId;
         }
     }
 }
-*/
+

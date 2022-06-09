@@ -20,6 +20,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class
 PointServiceImpl implements PointService {
     private final MemberRepository memberRepository;
@@ -50,6 +51,7 @@ PointServiceImpl implements PointService {
     }
 
     @Override
+    @Transactional
     public PointDTO updatePoint(String recommendId) {
         // 1, 회원 아이디를 이용해 추천인 회원 찾기
         Member recommendMember = Optional.ofNullable(memberRepository.findByMemberId(recommendId))
