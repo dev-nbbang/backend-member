@@ -35,6 +35,7 @@ public class MemberConsumer {
         if(!receivedData.getRecommendId().isEmpty()) {
             pointService.updatePoint(receivedData.getRecommendId());
         }
+
         if(!receivedData.getMemberId().isEmpty() && !receivedData.getOttId().isEmpty()) {
             memberOttService.saveMemberOtt(receivedData.getMemberId(), receivedData.getOttId());
         }
