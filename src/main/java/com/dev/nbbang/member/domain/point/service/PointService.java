@@ -14,7 +14,7 @@ public interface PointService {
     PointDTO updatePoint(String memberId, PointDTO pointDTO);
 
     // 추천인 회원 적립
-    PointDTO updatePoint(String recommendId);
+    PointDTO updateRecommendPoint(String memberId, String recommendMemberId);
 
     // 포인트 이력 조회
     List<PointDTO> findPointDetails(String memberId, Long pointId, int size);

@@ -81,9 +81,30 @@ class PointRepositoryTest {
         assertThrows(DataIntegrityViolationException.class, () -> pointRepository.save(point));
     }
 
+    @Test
+    @DisplayName("포인트 레포지토리 : 추천인 적립 검증")
+    void 추천인_적립_검증() {
+        // given
+        Point savedPoint = pointRepository.save(testPointBuilder());
+
+        Integer validRecommend = pointRepository.validRecommend(testMember(), "모리야마");
+
+        org.assertj.core.api.Assertions.assertThat(validRecommend).isEqualTo(1);
+
+    }
+    private static Point testPointBuilder() {
+        return Point.builder()
+                .member(testMember())
+                .pointType(PointType.INCREASE)
+                .pointDetail("추천인 적립")
+                .pointYmd(LocalDateTime.now())
+                .nomineeId("모리야마")
+                .build();
+    }
+
     private static Member testMember() {
         return Member.builder()
-                .memberId("K-2197723261")
+                .memberId("미쿠리")
 //                .memberId("test")
                 .point(1000L)
                 .build();
