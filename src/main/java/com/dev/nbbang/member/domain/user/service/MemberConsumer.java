@@ -35,12 +35,11 @@ public class MemberConsumer {
 
         // 메세지가 중복해서 처리될 수도 있는 경우를 처리하자.
         if(receivedData.getRecommendMemberId().length() > 0) {
-            // 포인트의 경우 memberId로 이력에서 조회? 포인트 이력 중복 처리 로직 고민
-            pointService.updatePoint(receivedData.getRecommendMemberId());
+            // 추천인 적립을 서비스에서 중복 적립 검증 했으므로 메세지의 중복 읽기에 대해 동일한 결과를 반환 (멱등성 보장)
+            pointService.updateRecommendPoint(receivedData.getMemberId(), receivedData.getRecommendMemberId());
         }
         if(receivedData.getMemberId().length() > 0 && !receivedData.getOttId().isEmpty()) {
-            // 관심 OTT의 경우 중복 처리해도 상관이 없음 (있는 경우 delete 로직을 추가해줄까?)
-
+            // 관심 OTT 등록은 기존의 관심 OTT 삭제 후 추가 형식이므로 메세지 중복 처리에 대해 동일한 결과 반환 (멱등성 보장)
             memberOttService.saveMemberOtt(receivedData.getMemberId(), receivedData.getOttId());
         }
     }

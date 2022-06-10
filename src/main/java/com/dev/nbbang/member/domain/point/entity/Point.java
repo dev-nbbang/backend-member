@@ -37,4 +37,7 @@ public class Point {
     @Column(name = "POINT_TYPE")
     @Enumerated(EnumType.STRING)
     private PointType pointType;
+
+    @Column(name = "NOMINEE_ID")
+    private String nomineeId;
 }

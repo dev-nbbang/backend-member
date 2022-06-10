@@ -24,6 +24,7 @@ public class PointDTO {
     private String pointDetail;
     private PointType pointType;
     private LocalDateTime pointYmd;
+    private String nomineeId;
 
     public static PointDTO create(Point point) {
         return PointDTO.builder()
@@ -63,13 +64,14 @@ public class PointDTO {
     }
 
     // 추천인 적립
-    public static Point toEntity(Member member) {
+    public static Point toEntity(String nomineeId, Member member) {
         return Point.builder()
                 .member(member)
                 .usePoint(500L)
-                .pointDetail("추천인 적립!")
+                .pointDetail(nomineeId + "님의 추천인 적립!")
                 .pointType(PointType.INCREASE)
                 .pointYmd(LocalDateTime.now())
+                .nomineeId(nomineeId)
                 .build();
     }
 }
