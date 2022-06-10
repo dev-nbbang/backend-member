@@ -3,6 +3,7 @@ package com.dev.nbbang.member.domain.point.service;
 import com.dev.nbbang.member.domain.point.dto.PointDTO;
 import com.dev.nbbang.member.domain.point.entity.Point;
 import com.dev.nbbang.member.domain.point.entity.PointType;
+import com.dev.nbbang.member.domain.point.exception.FailCreditRecommendPointException;
 import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
 import com.dev.nbbang.member.domain.point.repository.PointRepository;
 import com.dev.nbbang.member.domain.user.entity.Grade;
@@ -145,6 +146,17 @@ class PointServiceTest {
 
         // then
         assertThrows(NoSuchMemberException.class, () -> pointService.findPointDetails(memberId, 1L, 0));
+    }
+
+    @Test
+    @DisplayName("포인트 서비스 : 추천인 포인트 적립 검증에서 실패")
+    void 추천인_포인트_적립_검증에서_실패() {
+        // given
+        given(memberRepository.findByMemberId(anyString())).willReturn(testMember());
+        given(pointRepository.validRecommend(any(), anyString())).willReturn(1);
+
+        // when
+        assertThrows(FailCreditRecommendPointException.class, () -> pointService.updateRecommendPoint("모리야마", "미쿠리"));
     }
 
     private static Member testMember() {
