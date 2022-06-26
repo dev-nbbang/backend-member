@@ -5,18 +5,22 @@ import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
+import com.dev.nbbang.member.domain.user.dto.request.MemberLeaveRequest;
 import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
 import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
+import com.dev.nbbang.member.domain.user.service.MemberProducer;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +35,7 @@ import java.util.*;
 @Tag(name = "Member", description = "Member API")
 public class MemberController {
     private final MemberService memberService;
+    private final MemberProducer memberProducer;
 
     @GetMapping(value = "/recommend/{nickname}")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
@@ -190,10 +195,15 @@ public class MemberController {
 
         try {
             String memberId = servletRequest.getHeader("X-Authorization-Id");
+
+            // 회원 탈퇴 로직
             memberService.deleteMember(memberId);
 
+            // 회원 탈퇴 로직 성공 시 회원 탈퇴 이벤트 발행
+            memberProducer.sendLeaveMemberMessage(MemberLeaveRequest.create(memberId));
+
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (FailDeleteMemberException e) {
+        } catch (FailDeleteMemberException | JsonProcessingException e) {
             log.info(" >> [Nbbang Member Controller - deleteMember] : " + e.getMessage());
 
             return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));

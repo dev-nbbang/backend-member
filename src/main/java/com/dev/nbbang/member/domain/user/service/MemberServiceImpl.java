@@ -118,7 +118,6 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void deleteMember(String memberId) {
-
         if (memberId.length() < 1)
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
