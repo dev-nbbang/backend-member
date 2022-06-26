@@ -3,6 +3,7 @@ package com.dev.nbbang.member.domain.user.service;
 import com.dev.nbbang.member.domain.ott.service.MemberOttService;
 import com.dev.nbbang.member.domain.point.dto.PointDTO;
 import com.dev.nbbang.member.domain.point.dto.request.MemberPointRequest;
+import com.dev.nbbang.member.domain.point.exception.FailCreditRecommendPointException;
 import com.dev.nbbang.member.domain.point.service.PointService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +36,12 @@ public class MemberConsumer {
         // 메세지가 중복해서 처리될 수도 있는 경우를 처리하자.
         if(receivedData.getRecommendMemberId().length() > 0) {
             // 추천인 적립을 서비스에서 중복 적립 검증 했으므로 메세지의 중복 읽기에 대해 동일한 결과를 반환 (멱등성 보장)
-            pointService.updateRecommendPoint(receivedData.getMemberId(), receivedData.getRecommendMemberId());
+            try {
+                pointService.updateRecommendPoint(receivedData.getMemberId(), receivedData.getRecommendMemberId());
+            } catch (FailCreditRecommendPointException e) {
+                // 중복에 대한 예외인 경우는 제대로 처리한 걸로 판단
+                log.info("이미 처리된 추천인 메세지입니다.");
+            }
         }
         if(receivedData.getMemberId().length() > 0 && !receivedData.getOttId().isEmpty()) {
             // 관심 OTT 등록은 기존의 관심 OTT 삭제 후 추가 형식이므로 메세지 중복 처리에 대해 동일한 결과 반환 (멱등성 보장)
