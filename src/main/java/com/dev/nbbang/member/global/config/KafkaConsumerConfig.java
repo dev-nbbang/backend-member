@@ -38,7 +38,6 @@ public class KafkaConsumerConfig {
         // 그룹 아이디 지정
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group-id");
 
-        // 메세지 개수
         properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
         return new DefaultKafkaConsumerFactory<>(properties);
     }

@@ -3,9 +3,9 @@ spring:
   application:
     name: nbbang-user, common, jwt-common, member-datasource     # common 공통 프로퍼티 불러오기
   profiles:
-    active: local
+    active: prod
   config:
-    import: optional:configserver:http://localhost:8197
+    import: optional:configserver:http://129.154.222.27:8197
   rabbitmq:
     host: 129.154.222.27
     port: 5672
@@ -13,6 +13,15 @@ spring:
     password: nbbang-dev!@#
   main:
     allow-bean-definition-overriding: true
+  sleuth:
+    sampler:
+      probability: 1.0
+  zipkin:
+    base-url: http://localhost:9411
+    kafka:
+      topic: 'new-member-register'
+
+
 # 서버 설정
 server:
   port: 9000
@@ -26,22 +35,9 @@ management:
       exposure:
         include: busrefresh
 
-# 환경 파일 복호화
+# 키스토어 복호화
 encrypt:
   key-store:
-    #    내 로컬로 하면 돌아가는데 그러면 서버 배포하면 어케하지..?
-    location: file:///Users/zayson/Desktop/Zayson Project/엔빵/nbbang-config.jks
-    alias: nbbang-config-key
+    location: file:///home/ubuntu/nbbang/key/nbbang-config.jks
     password: config-access
-
-#
-##aes256 key값
-#aes.key=akf39dk2lskcv4uc834zuwi1jcnma2f3
-#
-#imp.token.url=https://api.iamport.kr/users/getToken
-#imp.billing.url=https://api.iamport.kr/subscribe/customers
-#imp.client.key=4738003304274604
-#imp.client.secret=15dcccbe238c258980c02f4b4fd7d10060887cd418bc0ad086f36873856b7746c62d7739eef780d1
-
-#springdoc.api-docs.path=/api-docs
-#springdoc.swagger-ui.path=/swagger-ui.html
+    alias: nbbang-config-key
