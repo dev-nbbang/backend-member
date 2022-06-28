@@ -31,6 +31,4 @@ public class MemberProducer {
         // 회원 탈퇴 이벤트 카프카 전송
         kafkaTemplate.send(MEMBER_LEAVE_TOPIC, sendMessage);
     }
-
-
 }

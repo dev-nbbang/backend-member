@@ -122,8 +122,10 @@ public class MemberServiceImpl implements MemberService {
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
         // 레디스 토큰 삭제
+/*
         if (!redisUtil.deleteData(memberId))
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+*/
 
         // 소셜에서 회원 삭제 (카카오는 연동 해제)
 
