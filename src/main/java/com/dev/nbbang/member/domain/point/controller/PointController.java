@@ -40,19 +40,13 @@ public class PointController {
     public ResponseEntity<?> searchMemberPoint(HttpServletRequest servletRequest) {
         log.info(">> [Nbbang Point Service] 포인트 조회");
 
-        try {
-            // 회원 아이디 파싱
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 회원 아이디 파싱
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 조회
-            MemberDTO findMember = memberService.findMember(memberId);
+        // 회원 조회
+        MemberDTO findMember = memberService.findMember(memberId);
 
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberPointResponse.create(findMember), "회원의 현재 포인트 조회에 성공했습니다."));
-        } catch (NoSuchMemberException e) {
-            log.info(" >> [Nbbang Point Controller - searchMemberPoint] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberPointResponse.create(findMember), "회원의 현재 포인트 조회에 성공했습니다."));
     }
 
     @PutMapping
@@ -60,20 +54,14 @@ public class PointController {
     public ResponseEntity<?> changeMemberPoints(@RequestBody MemberPointRequest request, HttpServletRequest servletRequest) {
         log.info(">> [Nbbang Point Service] 포인트 수정");
 
-        try {
-            // 회원 아이디 파싱
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 회원 아이디 파싱
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 서비스에서 수정 후 포인트 엔티티에 데이터 저장
-            PointDTO savePoint = pointService.updatePoint(memberId, MemberPointRequest.toDTO(request));
+        // 회원 서비스에서 수정 후 포인트 엔티티에 데이터 저장
+        PointDTO savePoint = pointService.updatePoint(memberId, MemberPointRequest.toDTO(request));
 
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberPointModifyResponse.create(savePoint), "포인트 적립/사용에 성공했습니다."), HttpStatus.CREATED);
-
-        } catch (NoSuchMemberException | NoCreatedPointDetailsException e) {
-            log.info(" >> [Nbbang Point Controller - changeMemberPoints] : " + e.getMessage());
-
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonSuccessResponse.response(true, MemberPointModifyResponse.create(savePoint), "포인트 적립/사용에 성공했습니다."));
     }
 
     @GetMapping(value = "/details")
@@ -83,19 +71,12 @@ public class PointController {
                                                 HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Point Service] 포인트 상세 이력 조회");
 
-        try {
-            // 회원 아이디 파싱
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 회원 아이디 파싱
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 포인트 상세이력 조회
-            List<PointDTO> findPoint = pointService.findPointDetails(memberId, pointId, size);
+        // 포인트 상세이력 조회
+        List<PointDTO> findPoint = pointService.findPointDetails(memberId, pointId, size);
 
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, PointDetailsResponse.create(memberId, findPoint), "회원의 포인트 상세이력 조회에 성공했습니다."), HttpStatus.OK);
-        } catch (NoSuchMemberException e) {
-
-            log.info(" >> [Nbbang Point Controller - searchMemberPoint] : " + e.getMessage());
-
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
-        }
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, PointDetailsResponse.create(memberId, findPoint), "회원의 포인트 상세이력 조회에 성공했습니다."));
     }
 }

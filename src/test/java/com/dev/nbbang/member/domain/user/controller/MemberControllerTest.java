@@ -12,7 +12,9 @@ import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.exception.FailLogoutMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoCreateMemberException;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
+import com.dev.nbbang.member.domain.user.service.MemberProducer;
 import com.dev.nbbang.member.domain.user.service.MemberService;
+import com.dev.nbbang.member.global.exception.NbbangException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,9 @@ class MemberControllerTest {
     @MockBean
     private MemberService memberService;
 
+    @MockBean
+    private MemberProducer memberProducer;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -76,7 +81,7 @@ class MemberControllerTest {
     void 닉네임으로_추천인_조회하기_실패() throws Exception {
         // given
         String uri = "/members/recommend/닉네임";
-        given(memberService.findMemberByNickname(anyString())).willThrow(NoSuchMemberException.class);
+        given(memberService.findMemberByNickname(anyString())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri))
@@ -112,7 +117,7 @@ class MemberControllerTest {
     void 닉네임_중복확인_실패() throws Exception {
         // given
         String uri = "/members/nickname/닉네임";
-        given(memberService.duplicateNickname(anyString())).willThrow(NoSuchMemberException.class);
+        given(memberService.duplicateNickname(anyString())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri))
@@ -152,7 +157,7 @@ class MemberControllerTest {
     void 닉네임_리스트_가져오기_실패() throws Exception {
         // given
         String uri = "/members/nickname/list/닉네임";
-        given(memberService.findMemberListByNickname(anyString())).willThrow(NoSuchMemberException.class);
+        given(memberService.findMemberListByNickname(anyString())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri))
@@ -193,8 +198,8 @@ class MemberControllerTest {
     void 회원_등급_조회_실패() throws Exception {
         // given
         String uri = "/members/grade";
-        
-        given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
+
+        given(memberService.findMember(anyString())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri)
@@ -237,8 +242,8 @@ class MemberControllerTest {
     void 회원_등급_수정_실패() throws Exception {
         //given
         String uri = "/members/grade";
-        
-        given(memberService.updateGrade(anyString(), any())).willThrow(NoCreateMemberException.class);
+
+        given(memberService.updateGrade(anyString(), any())).willThrow(new NoCreateMemberException("수정 실패", NbbangException.NO_CREATE_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(put(uri)
@@ -285,7 +290,7 @@ class MemberControllerTest {
         //given
         String uri = "/members/exp";
         
-        given(memberService.updateExp(anyString(), any())).willThrow(NoCreateMemberException.class);
+        given(memberService.updateExp(anyString(), any())).willThrow(new NoCreateMemberException("변경 실패", NbbangException.NO_CREATE_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(put(uri)
@@ -337,7 +342,7 @@ class MemberControllerTest {
         // given
         String uri = "/members/profile";
         
-        given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
+        given(memberService.findMember(anyString())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(get(uri)
@@ -390,7 +395,7 @@ class MemberControllerTest {
         //given
         String uri = "/members/profile";
         
-        given(memberService.updateMember(anyString(), any(), anyList())).willThrow(NoCreateMemberException.class);
+        given(memberService.updateMember(anyString(), any(), anyList())).willThrow(new NoCreateMemberException("수정 실패", NbbangException.NO_CREATE_MEMBER));
 
         //when
         MockHttpServletResponse response = mvc.perform(put(uri)
@@ -432,7 +437,7 @@ class MemberControllerTest {
         //given
         String uri = "/members/logout";
         
-        given(memberService.logout(anyString())).willThrow(FailLogoutMemberException.class);
+        given(memberService.logout(anyString())).willThrow(new FailLogoutMemberException("로그아웃 실패", NbbangException.FAIL_TO_LOGOUT));
 
         //when
         MockHttpServletResponse response = mvc.perform(delete(uri)

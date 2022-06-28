@@ -41,31 +41,21 @@ public class MemberController {
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
     public ResponseEntity<?> findRecommendMember(@PathVariable(name = "nickname") String nickname) {
         log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
-        try {
-            // 닉네임으로 회원 조회
-            MemberDTO findMember = memberService.findMemberByNickname(nickname);
+        // 닉네임으로 회원 조회
+        MemberDTO findMember = memberService.findMemberByNickname(nickname);
 
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.create(findMember), "추천인 조회에 성공했습니다."));
-        } catch (NoSuchMemberException e) {
-            log.info(" >> [Nbbang Member Controller - findRecommendMember] : " + e.getMessage());
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.create(findMember), "추천인 조회에 성공했습니다."));
 
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
     }
 
     @GetMapping(value = "/nickname/{nickname}")
     @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 확인")
     public ResponseEntity<?> checkDuplicateNickname(@PathVariable(name = "nickname") String nickname) {
         log.info(" >> [Nbbang Member Service] 닉네임 중복 확인");
-        try {
-            boolean nicknameDup = memberService.duplicateNickname(nickname);
+        boolean nicknameDup = memberService.duplicateNickname(nickname);
 
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, nicknameDup, "사용 가능한 닉네임입니다."));
-        } catch (NoSuchMemberException e) {
-            log.info(" >> [Nbbang Member Controller - checkDuplicateNickname] : " + e.getMessage());
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, nicknameDup, "사용 가능한 닉네임입니다."));
 
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
     }
 
     @GetMapping(value = "/nickname/list/{nickname}")
@@ -73,16 +63,11 @@ public class MemberController {
     public ResponseEntity<?> searchNicknameList(@PathVariable(name = "nickname") String nickname) {
         log.info(" >> [Nbbang Member Service] 닉네임 리스트 가져오기");
 
-        try {
-            List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
+        List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
 
-            // 리스트 상태값 고민
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.createList(findMemberList), "닉네임 리스트 조회에 성공했습니다."));
-        } catch (NoSuchMemberException e) {
-            log.info(" >> [Nbbang Member Controller - searchNicknameList] : " + e.getMessage());
+        // 리스트 상태값 고민
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.createList(findMemberList), "닉네임 리스트 조회에 성공했습니다."));
 
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
     }
 
     @GetMapping(value = "/grade")
@@ -90,20 +75,13 @@ public class MemberController {
     public ResponseEntity<?> getMemberGrade(HttpServletRequest servletRequest) {
         log.info(" >>  [Nbbang Member Service] 회원 등급 조회");
 
-        try {
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 조회
-            MemberDTO findMember = memberService.findMember(memberId);
+        // 회원 조회
+        MemberDTO findMember = memberService.findMember(memberId);
 
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberGradeResponse.create(findMember), "회원 등급 조회에 성공했습니다."));
-        } catch (NoSuchMemberException e) {
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberGradeResponse.create(findMember), "회원 등급 조회에 성공했습니다."));
 
-
-            log.info(" >> [Nbbang Member Controller - getMemberGrade] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
     }
 
     @PutMapping(value = "/grade")
@@ -111,20 +89,14 @@ public class MemberController {
     public ResponseEntity<?> modifyMemberGrade(@RequestBody MemberGradeRequest request, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Member Service] 회원 등급 수정");
 
-        try {
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 등급 수정
-            MemberDTO updatedMember = memberService.updateGrade(memberId, MemberGradeRequest.toEntity(request));
+        // 회원 등급 수정
+        MemberDTO updatedMember = memberService.updateGrade(memberId, MemberGradeRequest.toEntity(request));
 
-            // 여기 부분 MemberGradeResponse랑 CommonSucessResponse 확인해서 리팩토링 진행하면 될듯!
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberGradeResponse.create(updatedMember), "회원 등급 수정에 성공했습니다."), HttpStatus.CREATED);
-        } catch (NoCreateMemberException e) {
-
-            log.info(" >> [Nbbang Member Controller - modifyMemberGrade] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        // 여기 부분 MemberGradeResponse랑 CommonSucessResponse 확인해서 리팩토링 진행하면 될듯!
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonSuccessResponse.response(true, MemberGradeResponse.create(updatedMember), "회원 등급 수정에 성공했습니다."));
     }
 
     @PutMapping(value = "/exp")
@@ -132,18 +104,13 @@ public class MemberController {
     public ResponseEntity<?> modifyMemberExp(@RequestBody MemberExpRequest request, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Member Service] 회원 경험치 변동");
 
-        try {
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 경험치 변동
-            MemberDTO updatedMember = memberService.updateExp(memberId, MemberExpRequest.toEntity(request));
+        // 회원 경험치 변동
+        MemberDTO updatedMember = memberService.updateExp(memberId, MemberExpRequest.toEntity(request));
 
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberExpResponse.create(updatedMember) , "회원 경험치 변경에 성공했습니다."), HttpStatus.CREATED);
-        } catch (NoCreateMemberException e) {
-            log.info(" >> [Nbbang Member Controller - modifyMemberExp] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonSuccessResponse.response(true, MemberExpResponse.create(updatedMember), "회원 경험치 변경에 성공했습니다."));
     }
 
     @GetMapping(value = "/profile")
@@ -151,19 +118,13 @@ public class MemberController {
     public ResponseEntity<?> getMemberProfile(HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Member Service] 회원 프로필 불러오기");
 
-        try {
-            // 현재 자신만 불러오는 걸로 되었네..?
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 현재 자신만 불러오는 걸로 되었네..?
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 정보 불러오기
-            MemberDTO findMember = memberService.findMember(memberId);
+        // 회원 정보 불러오기
+        MemberDTO findMember = memberService.findMember(memberId);
 
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberProfileResponse.create(findMember), "회원 프로필 조회에 성공했습니다."));
-        } catch (NoSuchMemberException e) {
-            log.info(" >> [Nbbang Member Controller - getMemberProfile] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberProfileResponse.create(findMember), "회원 프로필 조회에 성공했습니다."));
     }
 
     @PutMapping("/profile")
@@ -171,43 +132,31 @@ public class MemberController {
     public ResponseEntity<?> modifyMemberProfile(@RequestBody MemberModifyRequest request, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Member Service] 회원 프로필 수정하기");
 
-        try {
-            // X-Authorization-id
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // X-Authorization-id
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 정보 수정
-            MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request), request.getOttId());
+        // 회원 정보 수정
+        MemberDTO updatedMember = memberService.updateMember(memberId, MemberModifyRequest.toEntity(request), request.getOttId());
 
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberModifyResponse.create(updatedMember), "회원 프로필 수정에 성공했습니다."), HttpStatus.CREATED);
-        } catch (NoCreateMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
-            log.info(" >> [Nbbang Member Controller - modifyMemberProfile] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
-
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonSuccessResponse.response(true, MemberModifyResponse.create(updatedMember), "회원 프로필 수정에 성공했습니다."));
     }
 
     // 회원 탈퇴 추후 CASCADE 설정 및 소셜 로그아웃 구현 필요
     @DeleteMapping(value = "/profile")
     @Operation(description = "회원 탈퇴")
-    public ResponseEntity<?> deleteMember(HttpServletRequest servletRequest) {
+    public ResponseEntity<?> deleteMember(HttpServletRequest servletRequest) throws JsonProcessingException {
         log.info(" >> [Nbbang Member Service] 회원 탈퇴");
 
-        try {
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 회원 탈퇴 로직
-            memberService.deleteMember(memberId);
+        // 회원 탈퇴 로직
+        memberService.deleteMember(memberId);
 
-            // 회원 탈퇴 로직 성공 시 회원 탈퇴 이벤트 발행
-            memberProducer.sendLeaveMemberMessage(MemberLeaveRequest.create(memberId));
+        // 회원 탈퇴 로직 성공 시 회원 탈퇴 이벤트 발행
+        memberProducer.sendLeaveMemberMessage(MemberLeaveRequest.create(memberId));
 
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (FailDeleteMemberException | JsonProcessingException e) {
-            log.info(" >> [Nbbang Member Controller - deleteMember] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping(value = "/logout")
@@ -215,17 +164,11 @@ public class MemberController {
     public ResponseEntity<?> logout(HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Member Service] 로그아웃");
 
-        try {
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
-            boolean logout = memberService.logout(memberId);
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
+        boolean logout = memberService.logout(memberId);
 
-            log.info("로그아웃 되었습니다 : [logout : " + logout + "]");
+        log.info("로그아웃 되었습니다 : [logout : " + logout + "]");
 
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (FailLogoutMemberException e) {
-            log.info(" >> [Nbbang Member Controller - logout] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
