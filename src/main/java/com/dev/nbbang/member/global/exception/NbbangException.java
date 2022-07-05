@@ -6,7 +6,7 @@ public enum NbbangException {
     FAIL_TO_LOGOUT("BE003", "Failed To Logout And Delete Redis Token Data"),
     FAIL_TO_DELETE_MEMBER("BE004", "Failed To Delete Member"),
     FAIL_TO_CREATE_AUTH_URL("BE005", "Failed To Create Social Auth Url"),
-    ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),
+    ILLEGAL_SOCIAL_TYPE("BE006", "Input Illegal Social Type"),
     DUPLICATE_MEMBER_ID("BE007", "Duplicate Member Id"),
     DUPLICATE_NICKNAME("BE008","Duplicate Nickname"),
     FAIL_TO_ENCRYPT("BE201", "Failed To Encrypt"),

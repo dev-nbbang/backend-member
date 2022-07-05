@@ -16,13 +16,13 @@ spring:
     password: nbbang-dev!@#
   main:
     allow-bean-definition-overriding: true
-  sleuth:
-    sampler:
-      probability: 1.0
-  zipkin:
-    base-url: http://localhost:9411
-    kafka:
-      topic: 'new-member-register'
+#  sleuth:
+#    sampler:
+#      probability: 1.0
+#  zipkin:
+#    base-url: http://localhost:9411
+#    kafka:
+#      topic: 'new-member-register'
 
 
 # 서버 설정
@@ -45,3 +45,20 @@ encrypt:
     location: file:///Users/zayson/Desktop/Zayson Project/엔빵/nbbang-config.jks
     password: config-access
     alias: nbbang-config-key
+
+# 소셜 연동해제
+sns:
+  kakao:
+    client-id: 7b5f1de64dc43b926149cad3b0dc4882
+    client-secret: SBTDMjD1EGdc9cTUiAPABHSdPmCC8F57
+    regenerate-token-uri: https://kauth.kakao.com/oauth/token
+    unlink-uri: https://kapi.kakao.com/v1/user/unlink
+  google:
+    uri: https://accounts.google.com/o/oauth2/v2/auth
+    client:
+      id: 126433517317-km3kks28bium4h714ous7o09059a4p7c.apps.googleusercontent.com
+      secret: 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
+    callback:
+      uri: http://localhost:9100/nbbang-auth/auth/google/callback
+    token:
+      uri: https://oauth2.googleapis.com/token

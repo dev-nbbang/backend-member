@@ -4,6 +4,9 @@ import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 
+import com.dev.nbbang.member.domain.user.api.entity.SocialType;
+import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
+import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
@@ -24,6 +27,7 @@ import java.util.Optional;
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OttViewRepository ottViewRepository;
+    private final SocialTypeMatcher socialTypeMatcher;
     private final RedisUtil redisUtil;
 
     /**
@@ -121,17 +125,30 @@ public class MemberServiceImpl implements MemberService {
         if (memberId.length() < 1)
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
-        // 레디스 토큰 삭제
-/*
-        if (!redisUtil.deleteData(memberId))
+        final String SOCIAL_TOKEN_PREFIX = "social-token:";
+        // 소셜 연동 해제 (일단 카카오만)
+        if (memberId.startsWith("K")) {
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.KAKAO);
+            // 1. 소셜 타입 찾기
+//        if(memberId.startsWith("G")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
+
+            // 2. 리프레시 토큰으로 엑세스 토큰 재발급
+            String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
+
+            // 3. 엑세스 토큰을 이용해 소셜 연동 해제 요청
+            Boolean unlink = socialOauth.unlinkSocial(memberId, accessToken);
+
+            if(!unlink) {
+                throw new FailDeleteMemberException("소셜 연동 해제에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+            }
+        }
+
+        // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제
+        if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId))
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
-*/
 
-        // 소셜에서 회원 삭제 (카카오는 연동 해제)
-
-        // 다른 서비스에 이벤트 발행 후 관련 모든 데이터 지우기 (동일 서비스 cascade로 관련 테이블 모두 지우기)
+        // 5. 회원 서비스 데이터 삭제 진행
         memberRepository.deleteByMemberId(memberId);
-
     }
 
     /**

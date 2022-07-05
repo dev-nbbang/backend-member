@@ -24,6 +24,7 @@ public class NbbangExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<CommonResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("IllegalArgument Exception");
+        e.getCause();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CommonResponse.response(false, "Bad Request"));
     }
