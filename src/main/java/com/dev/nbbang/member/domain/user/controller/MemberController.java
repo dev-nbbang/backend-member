@@ -3,10 +3,7 @@ package com.dev.nbbang.member.domain.user.controller;
 import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
-import com.dev.nbbang.member.domain.user.dto.request.MemberExpRequest;
-import com.dev.nbbang.member.domain.user.dto.request.MemberGradeRequest;
-import com.dev.nbbang.member.domain.user.dto.request.MemberLeaveRequest;
-import com.dev.nbbang.member.domain.user.dto.request.MemberModifyRequest;
+import com.dev.nbbang.member.domain.user.dto.request.*;
 import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberProducer;
@@ -37,33 +34,33 @@ public class MemberController {
     private final MemberService memberService;
     private final MemberProducer memberProducer;
 
-    @GetMapping(value = "/recommend/{nickname}")
+    @GetMapping(value = "/recommend")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
-    public ResponseEntity<?> findRecommendMember(@PathVariable(name = "nickname") String nickname) {
+    public ResponseEntity<?> findRecommendMember(@RequestBody MemberNicknameRequest request) {
         log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
         // 닉네임으로 회원 조회
-        MemberDTO findMember = memberService.findMemberByNickname(nickname);
+        MemberDTO findMember = memberService.findMemberByNickname(request.getNickname());
 
         return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.create(findMember), "추천인 조회에 성공했습니다."));
 
     }
 
-    @GetMapping(value = "/nickname/{nickname}")
+    @GetMapping(value = "/nickname")
     @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 확인")
-    public ResponseEntity<?> checkDuplicateNickname(@PathVariable(name = "nickname") String nickname) {
+    public ResponseEntity<?> checkDuplicateNickname(@RequestBody MemberNicknameRequest request) {
         log.info(" >> [Nbbang Member Service] 닉네임 중복 확인");
-        boolean nicknameDup = memberService.duplicateNickname(nickname);
+        boolean nicknameDup = memberService.duplicateNickname(request.getNickname());
 
         return ResponseEntity.ok(CommonSuccessResponse.response(true, nicknameDup, "사용 가능한 닉네임입니다."));
 
     }
 
-    @GetMapping(value = "/nickname/list/{nickname}")
+    @GetMapping(value = "/nickname/list")
     @Operation(summary = "닉네임 리스트 가져오기", description = "닉네임 리스트 가져오기")
-    public ResponseEntity<?> searchNicknameList(@PathVariable(name = "nickname") String nickname) {
+    public ResponseEntity<?> searchNicknameList(@RequestBody MemberNicknameRequest request) {
         log.info(" >> [Nbbang Member Service] 닉네임 리스트 가져오기");
 
-        List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
+        List<MemberDTO> findMemberList = memberService.findMemberListByNickname(request.getNickname());
 
         // 리스트 상태값 고민
         return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.createList(findMemberList), "닉네임 리스트 조회에 성공했습니다."));

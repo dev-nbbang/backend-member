@@ -13,6 +13,7 @@ import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
+import com.dev.nbbang.member.domain.user.util.NicknameValidation;
 import com.dev.nbbang.member.global.exception.NbbangException;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -52,11 +54,6 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     public MemberDTO findMemberByNickname(String nickname) {
-        // 특수문자 및 공백 제외
-        if(!nickname.matches("[^\\wㄱ-힣]|[\\_]") || nickname.length() < 3 || nickname.length() > 10) {
-            throw new IllegalNicknameException("옳바르지 않은 닉네임입니다.", NbbangException.ILLEGAL_NICKNAME);
-        }
-
         Member member = Optional.ofNullable(memberRepository.findByNickname(nickname))
                 .orElseThrow(() -> new NoSuchMemberException("회원이 존재하지 않습니다.", NbbangException.NOT_FOUND_MEMBER));
         return MemberDTO.create(member);
@@ -99,6 +96,11 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     public boolean duplicateNickname(String nickname) {
+        // 특수문자 및 공백 제외
+        if(NicknameValidation.valid(nickname))
+            throw new IllegalNicknameException("옳바르지 않은 닉네임입니다.", NbbangException.ILLEGAL_NICKNAME);
+
+
         Optional.ofNullable(memberRepository.findByNickname(nickname)).ifPresent(
                 exception -> {throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);}
         );
