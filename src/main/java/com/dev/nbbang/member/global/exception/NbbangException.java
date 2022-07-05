@@ -22,7 +22,8 @@ public enum NbbangException {
     DUPLICATION_COUPON("BE402", "Duplication a Coupon"),
     ALREADY_USED_COUPON("BE403", "Already Used a Coupon"),
     NO_CREATE_POINT_DETAILS("BE501", "Doesn't Create Point Details"),
-    FAIL_CREDIT_RECOMMEND_POINT("BE502", "Fail Credit Recommend Point"),;
+    FAIL_CREDIT_RECOMMEND_POINT("BE502", "Fail Credit Recommend Point"),
+    ILLEGAL_NICKNAME("BE503", "Illegal Nickname"), ;
 
     private String code;
     private String message;
