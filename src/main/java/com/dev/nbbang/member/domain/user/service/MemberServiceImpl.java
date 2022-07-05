@@ -127,10 +127,10 @@ public class MemberServiceImpl implements MemberService {
 
         final String SOCIAL_TOKEN_PREFIX = "social-token:";
         // 소셜 연동 해제 (일단 카카오만)
-        if (memberId.startsWith("K")) {
+        if (memberId.startsWith("K-")) {
             SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.KAKAO);
             // 1. 소셜 타입 찾기
-//        if(memberId.startsWith("G")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
+//        if(memberId.startsWith("G-")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
 
             // 2. 리프레시 토큰으로 엑세스 토큰 재발급
             String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
@@ -143,9 +143,16 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
-        // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제
-        if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId))
-            throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+        // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제 (현재 일반 회원 삭제 안됌)
+        // [TEST] 일반 회원의 경우는 그냥 JWT만 탈퇴하도록
+        if (memberId.startsWith("K-") || memberId.startsWith("G-")) {
+            if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId))
+                throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+        }
+        else {
+            if(!redisUtil.deleteData(memberId))
+                throw new FailDeleteMemberException("테스트! 일반 회원 탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+        }
 
         // 5. 회원 서비스 데이터 삭제 진행
         memberRepository.deleteByMemberId(memberId);
