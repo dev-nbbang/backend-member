@@ -41,19 +41,14 @@ public class OttController {
     public ResponseEntity<?> registerMemberOtt(@RequestBody MemberOttRequest request, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 등록");
 
-        try {
-            // 인증헤더에서 아이디 가져오기
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 인증헤더에서 아이디 가져오기
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 관심 OTT 등록
-            List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(memberId, request.getOttId());
+        // 관심 OTT 등록
+        List<MemberOttDTO> savedMemberOtt = memberOttService.saveMemberOtt(memberId, request.getOttId());
 
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, MemberOttResponse.create(savedMemberOtt), "관심 OTT 서비스 등록에 성공했습니다."), HttpStatus.CREATED);
-        } catch (NoSuchMemberException | NoSuchOttException | NoCreatedMemberOttException e) {
-            log.info(" >> [Nbbang Ott Controller - registerMemberOtt] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonSuccessResponse.response(true, MemberOttResponse.create(savedMemberOtt), "관심 OTT 서비스 등록에 성공했습니다."));
     }
 
     @GetMapping
@@ -61,19 +56,13 @@ public class OttController {
     public ResponseEntity<?> searchMemberOtt(HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 조회");
 
-        try {
-            // 인증헤더에서 아이디 가져오기
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 인증헤더에서 아이디 가져오기
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 관심 OTT 조회
-            List<MemberOttDTO> findMemberOtt = memberOttService.findMemberOttByMemberId(memberId);
+        // 관심 OTT 조회
+        List<MemberOttDTO> findMemberOtt = memberOttService.findMemberOttByMemberId(memberId);
 
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberOttResponse.create(findMemberOtt), "관심 OTT 서비스 조회에 성공했습니다."));
-        } catch (NoSuchMemberException | NoSuchMemberOttException e) {
-            log.info(" >> [Nbbang Ott Controller - searchMemberOtt] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberOttResponse.create(findMemberOtt), "관심 OTT 서비스 조회에 성공했습니다."));
     }
 
     @DeleteMapping(value = "/{ottId}")
@@ -81,19 +70,13 @@ public class OttController {
     public ResponseEntity<?> deleteMemberOtt(@PathVariable(name = "ottId") Integer ottId, HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 한개 삭제");
 
-        try {
-            // 인증헤더에서 아이디 가져오기
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 인증헤더에서 아이디 가져오기
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 관심 OTT 한개 삭제
-            memberOttService.deleteMemberOtt(memberId, ottId);
+        // 관심 OTT 한개 삭제
+        memberOttService.deleteMemberOtt(memberId, ottId);
 
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (NoSuchMemberException | NoSuchOttException | NoSuchMemberOttException e) {
-            log.info(" >> [Nbbang Ott Controller - deleteMemberOtt] : " + e.getMessage());
-
-            return new ResponseEntity<>(CommonResponse.create(false, e.getMessage()), HttpStatus.OK);
-        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping
@@ -101,19 +84,13 @@ public class OttController {
     public ResponseEntity<?> deleteAllMemberOtt(HttpServletRequest servletRequest) {
         log.info(" >> [Nbbang Ott Service] 관심 OTT 한개 삭제");
 
-        try {
-            // 인증헤더에서 아이디 가져오기
-            String memberId = servletRequest.getHeader("X-Authorization-Id");
+        // 인증헤더에서 아이디 가져오기
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
 
-            // 관심 OTT 한개 삭제
-            memberOttService.deleteAllMemberOtt(memberId);
+        // 관심 OTT 한개 삭제
+        memberOttService.deleteAllMemberOtt(memberId);
 
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (NoSuchMemberException | NoSuchMemberOttException e) {
-            log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping(value = "/list")
@@ -121,17 +98,11 @@ public class OttController {
     public ResponseEntity<?> searchAllOttView() {
         log.info(" >> [Nbbang Ott Service] 모든 OTT 서비스 조회");
 
-        try {
-            // 모든 OTT 서비스 조회
-            List<OttViewDTO> findOttView = ottViewService.findAll();
+        // 모든 OTT 서비스 조회
+        List<OttViewDTO> findOttView = ottViewService.findAll();
 
-            // response 타입으로 빼기
-            return ResponseEntity.ok(CommonSuccessResponse.response(true, OttViewResponse.create(findOttView), "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."));
-        } catch (NoSuchMemberException | NoSuchOttException | FailDeleteMemberOttException e) {
-            log.info(" >> [Nbbang Ott Controller - deleteAllMemberOtt] : " + e.getMessage());
-
-            return ResponseEntity.ok(CommonResponse.create(false, e.getMessage()));
-        }
+        // response 타입으로 빼기
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, OttViewResponse.create(findOttView), "등록된 모든 OTT 서비스 상세정보 조회에 성공했습니다."));
     }
 }
 

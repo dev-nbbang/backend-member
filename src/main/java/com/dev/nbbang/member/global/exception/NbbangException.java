@@ -6,7 +6,7 @@ public enum NbbangException {
     FAIL_TO_LOGOUT("BE003", "Failed To Logout And Delete Redis Token Data"),
     FAIL_TO_DELETE_MEMBER("BE004", "Failed To Delete Member"),
     FAIL_TO_CREATE_AUTH_URL("BE005", "Failed To Create Social Auth Url"),
-    ILLEGAL_SOCAIL_TYPE("BE006", "Input Illegal Social Type"),
+    ILLEGAL_SOCIAL_TYPE("BE006", "Input Illegal Social Type"),
     DUPLICATE_MEMBER_ID("BE007", "Duplicate Member Id"),
     DUPLICATE_NICKNAME("BE008","Duplicate Nickname"),
     FAIL_TO_ENCRYPT("BE201", "Failed To Encrypt"),
@@ -22,7 +22,8 @@ public enum NbbangException {
     DUPLICATION_COUPON("BE402", "Duplication a Coupon"),
     ALREADY_USED_COUPON("BE403", "Already Used a Coupon"),
     NO_CREATE_POINT_DETAILS("BE501", "Doesn't Create Point Details"),
-    FAIL_CREDIT_RECOMMEND_POINT("BE502", "Fail Credit Recommend Point"),;
+    FAIL_CREDIT_RECOMMEND_POINT("BE502", "Fail Credit Recommend Point"),
+    ILLEGAL_NICKNAME("BE503", "Illegal Nickname"), ;
 
     private String code;
     private String message;
