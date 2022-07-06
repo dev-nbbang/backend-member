@@ -5,6 +5,7 @@ import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 
 import com.dev.nbbang.member.domain.user.api.entity.SocialType;
+import com.dev.nbbang.member.domain.user.api.service.KakaoOauth;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
@@ -31,6 +32,7 @@ public class MemberServiceImpl implements MemberService {
     private final OttViewRepository ottViewRepository;
     private final SocialTypeMatcher socialTypeMatcher;
     private final RedisUtil redisUtil;
+    private final String SOCIAL_TOKEN_PREFIX = "social-token:";
 
     /**
      * 회원 아이디를 이용해 가입된 회원 상세 내용을 찾는다.
@@ -135,11 +137,15 @@ public class MemberServiceImpl implements MemberService {
         if (memberId.length() < 1)
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
-        final String SOCIAL_TOKEN_PREFIX = "social-token:";
+
 
         // 소셜 연동 해제 (일단 카카오만)
         if(memberId.startsWith("K-") || memberId.startsWith("G-")) {
-            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.KAKAO);
+            SocialType socialType = SocialType.KAKAO;
+            if(memberId.startsWith("G-")) socialType = SocialType.GOOGLE;
+
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, socialType);
+
             // 1. 소셜 타입 찾기
 //        if(memberId.startsWith("G-")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
 
@@ -178,7 +184,19 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean logout(String memberId) {
         if (memberId.length() < 1) throw new FailLogoutMemberException("로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
-        // 존재하지 않는 회원까지 이중 체크?
+
+        // 카카오는 소셜 로그아웃 있음
+        if (memberId.startsWith("K-")) {
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.KAKAO);
+
+            String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
+
+            Boolean logout = socialOauth.logout(memberId, accessToken);
+
+            if(!logout)
+                throw new FailLogoutMemberException("카카오 로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
+        }
+
         return redisUtil.deleteData(memberId);
     }
 
