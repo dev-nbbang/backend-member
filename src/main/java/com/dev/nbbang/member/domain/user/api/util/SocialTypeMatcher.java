@@ -14,9 +14,9 @@ import java.util.List;
 public class SocialTypeMatcher {
     private final List<SocialOauth> socialOauthList;
 
-    public SocialOauth findSocialOauth(String memberId, SocialType socialType) {
+    public SocialOauth findSocialOauth(SocialType socialType) {
         return socialOauthList.stream()
-                .filter(socialOauth -> socialOauth.type(memberId) == socialType)
+                .filter(socialOauth -> socialOauth.type() == socialType)
                 .findFirst()
                 .orElseThrow(() -> new IllegalSocialTypeException("잘못된 소셜 로그인 타입입니다.", NbbangException.ILLEGAL_SOCIAL_TYPE));
     }

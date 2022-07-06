@@ -144,7 +144,7 @@ public class MemberServiceImpl implements MemberService {
             SocialType socialType = SocialType.KAKAO;
             if(memberId.startsWith("G-")) socialType = SocialType.GOOGLE;
 
-            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, socialType);
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(socialType);
 
             // 1. 소셜 타입 찾기
 //        if(memberId.startsWith("G-")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
@@ -187,7 +187,7 @@ public class MemberServiceImpl implements MemberService {
 
         // 카카오는 소셜 로그아웃 있음
         if (memberId.startsWith("K-")) {
-            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.KAKAO);
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(SocialType.KAKAO);
 
             String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
 

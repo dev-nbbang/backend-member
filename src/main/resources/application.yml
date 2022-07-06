@@ -53,6 +53,7 @@ sns:
     client-secret: SBTDMjD1EGdc9cTUiAPABHSdPmCC8F57
     regenerate-token-uri: https://kauth.kakao.com/oauth/token
     unlink-uri: https://kapi.kakao.com/v1/user/unlink
+    logout-uri: https://kapi.kakao.com/v1/user/logout
   google:
     client:
       id: 126433517317-km3kks28bium4h714ous7o09059a4p7c.apps.googleusercontent.com

@@ -23,16 +23,16 @@ public class GoogleOauth implements SocialOauth {
 
     // 정보 주입받기
     @Value("${sns.google.client.id}")
-    private final String CLIENT_ID;
+    private String CLIENT_ID;
 
     @Value("${sns.google.client.secret}")
-    private final String CLIENT_SECRET;
+    private String CLIENT_SECRET;
 
-    @Value("${sns.google.client.token.ur}")
-    private final String TOKEN_URI;
+    @Value("${sns.google.token.uri}")
+    private String TOKEN_URI;
 
     @Value("${sns.google.revoke.uri}")
-    private final String REVOKE_URI;
+    private String REVOKE_URI;
 
     @Override
     public String generateAccessToken(String refreshToken) {

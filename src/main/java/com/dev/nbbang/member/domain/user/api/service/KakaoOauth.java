@@ -33,18 +33,13 @@ public class KakaoOauth implements SocialOauth{
     private String REGENERATE_TOKEN_URI;
 
     @Value("${sns.kakao.unlink-uri}")
-    private final String UNLINK_URI;
+    private String UNLINK_URI;
 
     @Value("${sns.kakao.logout-uri}")
-    private final String LOGOUT_URI;
+    private String LOGOUT_URI;
     
     @Override
     public String generateAccessToken(String refreshToken) {
-        
-        System.out.println("CLIENT_ID = " + CLIENT_ID);
-        System.out.println("CLIENT_SECRET = " + CLIENT_SECRET);
-        System.out.println("REGENERATE_TOKEN_URI = " + REGENERATE_TOKEN_URI);
-
         // Header 세팅
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
