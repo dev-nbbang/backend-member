@@ -5,6 +5,7 @@ import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 
 import com.dev.nbbang.member.domain.user.api.entity.SocialType;
+import com.dev.nbbang.member.domain.user.api.service.KakaoOauth;
 import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
 import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
@@ -31,6 +32,7 @@ public class MemberServiceImpl implements MemberService {
     private final OttViewRepository ottViewRepository;
     private final SocialTypeMatcher socialTypeMatcher;
     private final RedisUtil redisUtil;
+    private final String SOCIAL_TOKEN_PREFIX = "social-token:";
 
     /**
      * 회원 아이디를 이용해 가입된 회원 상세 내용을 찾는다.
@@ -60,6 +62,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // 회원 정보 업데이트 (Member_Ott 구분)
+
     /**
      * 회원 아이디를 이용해 가입된 회원을 찾은 뒤 새로운 회원 정보로 수정하고 관심 OTT 서비스도 수정한다.
      *
@@ -97,12 +100,14 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean duplicateNickname(String nickname) {
         // 특수문자 및 공백 제외
-        if(NicknameValidation.valid(nickname))
+        if (NicknameValidation.valid(nickname))
             throw new IllegalNicknameException("옳바르지 않은 닉네임입니다.", NbbangException.ILLEGAL_NICKNAME);
 
 
         Optional.ofNullable(memberRepository.findByNickname(nickname)).ifPresent(
-                exception -> {throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);}
+                exception -> {
+                    throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);
+                }
         );
 
         return true;
@@ -132,10 +137,15 @@ public class MemberServiceImpl implements MemberService {
         if (memberId.length() < 1)
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
-        final String SOCIAL_TOKEN_PREFIX = "social-token:";
+
+
         // 소셜 연동 해제 (일단 카카오만)
-        if (memberId.startsWith("K-")) {
-            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.KAKAO);
+        if(memberId.startsWith("K-") || memberId.startsWith("G-")) {
+            SocialType socialType = SocialType.KAKAO;
+            if(memberId.startsWith("G-")) socialType = SocialType.GOOGLE;
+
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(socialType);
+
             // 1. 소셜 타입 찾기
 //        if(memberId.startsWith("G-")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
 
@@ -145,20 +155,20 @@ public class MemberServiceImpl implements MemberService {
             // 3. 엑세스 토큰을 이용해 소셜 연동 해제 요청
             Boolean unlink = socialOauth.unlinkSocial(memberId, accessToken);
 
-            if(!unlink) {
+            if (!unlink) {
                 throw new FailDeleteMemberException("소셜 연동 해제에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
             }
-        }
 
-        // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제 (현재 일반 회원 삭제 안됌)
-        // [TEST] 일반 회원의 경우는 그냥 JWT만 탈퇴하도록
-        if (memberId.startsWith("K-") || memberId.startsWith("G-")) {
-            if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId))
+            // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제 (현재 일반 회원 삭제 안됌)
+            if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId)) {
                 throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+            }
         }
+        // [TEST] 일반 회원의 경우는 그냥 JWT만 탈퇴하도록
         else {
-            if(!redisUtil.deleteData(memberId))
+            if (!redisUtil.deleteData(memberId)) {
                 throw new FailDeleteMemberException("테스트! 일반 회원 탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+            }
         }
 
         // 5. 회원 서비스 데이터 삭제 진행
@@ -174,7 +184,19 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean logout(String memberId) {
         if (memberId.length() < 1) throw new FailLogoutMemberException("로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
-        // 존재하지 않는 회원까지 이중 체크?
+
+        // 카카오는 소셜 로그아웃 있음
+        if (memberId.startsWith("K-")) {
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(SocialType.KAKAO);
+
+            String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
+
+            Boolean logout = socialOauth.logout(memberId, accessToken);
+
+            if(!logout)
+                throw new FailLogoutMemberException("카카오 로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
+        }
+
         return redisUtil.deleteData(memberId);
     }
 
