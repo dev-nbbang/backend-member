@@ -54,11 +54,10 @@ sns:
     regenerate-token-uri: https://kauth.kakao.com/oauth/token
     unlink-uri: https://kapi.kakao.com/v1/user/unlink
   google:
-    uri: https://accounts.google.com/o/oauth2/v2/auth
     client:
       id: 126433517317-km3kks28bium4h714ous7o09059a4p7c.apps.googleusercontent.com
       secret: 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
-    callback:
-      uri: http://localhost:9100/nbbang-auth/auth/google/callback
+    revoke:
+      uri: https://oauth2.googleapis.com/revoke
     token:
       uri: https://oauth2.googleapis.com/token
