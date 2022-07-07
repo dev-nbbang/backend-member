@@ -3,8 +3,6 @@ package com.dev.nbbang.member.domain.user.controller;
 import com.dev.nbbang.member.domain.coupon.exception.AlreadyUsedCouponException;
 import com.dev.nbbang.member.domain.coupon.exception.NoSuchCouponException;
 import com.dev.nbbang.member.domain.coupon.service.CouponService;
-import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
-import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 import com.dev.nbbang.member.domain.point.dto.request.MemberPointRequest;
 import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
 import com.dev.nbbang.member.domain.point.service.PointService;
@@ -14,7 +12,6 @@ import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberProducer;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.global.dto.response.CommonResponse;
 import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,11 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 @RestController
