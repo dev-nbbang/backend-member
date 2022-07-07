@@ -45,10 +45,10 @@ public class MemberController {
 
     @GetMapping(value = "/recommend")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
-    public ResponseEntity<?> findRecommendMember(@RequestBody MemberNicknameRequest request) {
+    public ResponseEntity<?> findRecommendMember(@RequestParam("nickname")String nickname) {
         log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
         // 닉네임으로 회원 조회
-        MemberDTO findMember = memberService.findMemberByNickname(request.getNickname());
+        MemberDTO findMember = memberService.findMemberByNickname(nickname);
 
         return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.create(findMember), "추천인 조회에 성공했습니다."));
 
@@ -56,9 +56,9 @@ public class MemberController {
 
     @GetMapping(value = "/nickname")
     @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 확인")
-    public ResponseEntity<?> checkDuplicateNickname(@RequestBody MemberNicknameRequest request) {
-        log.info(" >> [Nbbang Member Service] 닉네임 중복 확인");
-        boolean nicknameDup = memberService.duplicateNickname(request.getNickname());
+    public ResponseEntity<?> checkDuplicateNickname(@RequestParam("nickname") String nickname) {
+        log.info(" >> [Nbbang Member Service] 닉네임 중복 확인확인");
+        boolean nicknameDup = memberService.duplicateNickname(nickname);
 
         return ResponseEntity.ok(CommonSuccessResponse.response(true, nicknameDup, "사용 가능한 닉네임입니다."));
 
@@ -66,10 +66,10 @@ public class MemberController {
 
     @GetMapping(value = "/nickname/list")
     @Operation(summary = "닉네임 리스트 가져오기", description = "닉네임 리스트 가져오기")
-    public ResponseEntity<?> searchNicknameList(@RequestBody MemberNicknameRequest request) {
+    public ResponseEntity<?> searchNicknameList(@RequestParam("nickname") String nickname) {
         log.info(" >> [Nbbang Member Service] 닉네임 리스트 가져오기");
 
-        List<MemberDTO> findMemberList = memberService.findMemberListByNickname(request.getNickname());
+        List<MemberDTO> findMemberList = memberService.findMemberListByNickname(nickname);
 
         // 리스트 상태값 고민
         return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberNicknameResponse.createList(findMemberList), "닉네임 리스트 조회에 성공했습니다."));
