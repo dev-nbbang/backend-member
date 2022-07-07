@@ -1,14 +1,18 @@
 package com.dev.nbbang.member.domain.user.controller;
 
-import com.dev.nbbang.member.domain.ott.exception.NoCreatedMemberOttException;
-import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
+import com.dev.nbbang.member.domain.coupon.exception.AlreadyUsedCouponException;
+import com.dev.nbbang.member.domain.coupon.exception.NoSuchCouponException;
+import com.dev.nbbang.member.domain.coupon.service.CouponService;
+import com.dev.nbbang.member.domain.point.dto.request.MemberPointRequest;
+import com.dev.nbbang.member.domain.point.exception.NoCreatedPointDetailsException;
+import com.dev.nbbang.member.domain.point.service.PointService;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.*;
 import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.service.MemberProducer;
 import com.dev.nbbang.member.domain.user.service.MemberService;
-import com.dev.nbbang.member.global.dto.response.CommonResponse;
+import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,11 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 @RestController
@@ -33,6 +35,8 @@ import java.util.*;
 public class MemberController {
     private final MemberService memberService;
     private final MemberProducer memberProducer;
+    private final PointService pointService;
+    private final CouponService couponService;
 
     @GetMapping(value = "/recommend")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
@@ -167,5 +171,30 @@ public class MemberController {
         log.info("로그아웃 되었습니다 : [logout : " + logout + "]");
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PostMapping(value = "/discount")
+    @Operation(description = "할인 로직")
+    public ResponseEntity<?> discount(@RequestBody MemberDiscRequest memberDiscRequest) {
+        String memberId = memberDiscRequest.getPointObj().getMemberId();
+        MemberDTO memberDTO = memberService.findMember(memberId);
+        Long point = memberDiscRequest.getPointObj().getUsePoint();
+        if(memberDiscRequest.getCouponId() != null) {
+            try {
+                couponService.updateMemberCoupon(memberId, memberDiscRequest.getCouponId());
+            } catch (NoSuchCouponException | NoSuchMemberException | AlreadyUsedCouponException e) {
+                log.info(e.getMessage());
+                return ResponseEntity.ok(CommonStatusResponse.create(false));
+            }
+        }
+        if(point != null && memberDTO.getPoint() >= point) {
+            try {
+                pointService.updatePoint(memberId, MemberPointRequest.toDTO(memberDiscRequest.getPointObj()));
+            } catch (NoSuchCouponException | NoSuchMemberException | NoCreatedPointDetailsException e) {
+                log.info(e.getMessage());
+                return ResponseEntity.ok(CommonStatusResponse.create(false));
+            }
+        }
+        return ResponseEntity.ok(CommonStatusResponse.create(true));
     }
 }
