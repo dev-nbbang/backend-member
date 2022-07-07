@@ -108,7 +108,7 @@ public class AccountController {
         try {
             MemberDTO member = memberService.findMember(memberId);
             if(member.getBillingKey() != null) {
-                String biilingKey = accountService.decrypt(member.getBillingKey());
+                String biilingKey = member.getBillingKey();
                 return new ResponseEntity<>(CommonSuccessResponse.response(true, BillingKeyResponse.create(biilingKey), "빌링키 조회를 완료했습니다"), HttpStatus.OK);
             }
         } catch (NoSuchMemberException e){
@@ -148,7 +148,7 @@ public class AccountController {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
             memberService.updateBillingKey(memberId, billingKeyEnc);
-            return new ResponseEntity<>(CommonResponse.response(true, "빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, billingKeyEnc,"빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException | FailIssueBillingKeyException | FailEncryptException e) {
             log.info("error: " + e.getMessage());
         }
