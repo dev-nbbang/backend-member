@@ -24,7 +24,7 @@ public class MemberProfileResponse {
     private Grade grade;
     private Long point;
     private Long exp;
-    private String billingKey;
+//    private String billingKey;
     private String partyInviteYn;
     private List<OttView> ottView;
 

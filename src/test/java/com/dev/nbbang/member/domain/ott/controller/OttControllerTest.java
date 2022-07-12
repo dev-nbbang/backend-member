@@ -12,6 +12,7 @@ import com.dev.nbbang.member.domain.ott.service.MemberOttService;
 import com.dev.nbbang.member.domain.ott.service.OttViewService;
 import com.dev.nbbang.member.domain.user.entity.Grade;
 import com.dev.nbbang.member.domain.user.entity.Member;
+import com.dev.nbbang.member.global.exception.NbbangException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -97,7 +98,7 @@ class OttControllerTest {
          * 2. 회원 아이디 및 OTT ID를 통해 관심 OTT 등록하기 (예외 발생) NoCreatedMemberOttException
          */
         String uri = "/ott-interest/new";
-        given(memberOttService.saveMemberOtt(anyString(), anyList())).willThrow(NoCreatedMemberOttException.class);
+        given(memberOttService.saveMemberOtt(anyString(), anyList())).willThrow(new NoCreatedMemberOttException("등록 실패", NbbangException.NO_CREATE_MEMBER_OTT));
 
         // when
         MockHttpServletResponse response = mvc.perform(post(uri)
@@ -152,7 +153,7 @@ class OttControllerTest {
          * 2. 회원 아이디를 통해 관심 OTT 모두 조회하기 (예외 발생) NoSuchMemberOttException
          */
         String uri = "/ott-interest";
-        given(memberOttService.findMemberOttByMemberId(anyString())).willThrow(NoSuchMemberOttException.class);
+        given(memberOttService.findMemberOttByMemberId(anyString())).willThrow(new NoSuchMemberOttException("조회 실패", NbbangException.NOT_FOUND_MEMBER_OTT));
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
@@ -196,7 +197,7 @@ class OttControllerTest {
          */
         String uri = "/ott-interest";
         String memberId = "Test Id";
-        doThrow(NoSuchMemberOttException.class).when(memberOttService).deleteAllMemberOtt(memberId);
+        doThrow(new NoSuchMemberOttException("조회 실패", NbbangException.NOT_FOUND_MEMBER_OTT)).when(memberOttService).deleteAllMemberOtt(memberId);
 
         // when
         MockHttpServletResponse response = mvc.perform(delete(uri)
@@ -241,7 +242,7 @@ class OttControllerTest {
         String uri = "/ott-interest/1";
         String memberId = "Test Id";
         Integer ottId = 1;
-        doThrow(NoSuchMemberOttException.class).when(memberOttService).deleteMemberOtt(memberId, ottId);
+        doThrow(new NoSuchMemberOttException("조회 실패", NbbangException.NOT_FOUND_MEMBER_OTT)).when(memberOttService).deleteMemberOtt(memberId, ottId);
 
         // when
         MockHttpServletResponse response = mvc.perform(delete(uri)
@@ -294,7 +295,7 @@ class OttControllerTest {
          * 1. OTT 서비스 전체조회 로직 호출
          */
         String uri = "/ott-interest/list";
-        given(ottViewService.findAll()).willThrow(NoSuchOttException.class);
+        given(ottViewService.findAll()).willThrow(new NoSuchOttException("조회 실패", NbbangException.NOT_FOUND_OTT));
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri))

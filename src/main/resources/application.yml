@@ -1,5 +1,8 @@
 # Spring Boot 설정
 spring:
+  kafka:
+    producer:
+      bootstrap-servers: 129.154.222.27:9092
   application:
     name: nbbang-user, common, jwt-common, member-datasource     # common 공통 프로퍼티 불러오기
   profiles:
@@ -13,13 +16,6 @@ spring:
     password: nbbang-dev!@#
   main:
     allow-bean-definition-overriding: true
-  sleuth:
-    sampler:
-      probability: 1.0
-  zipkin:
-    base-url: http://localhost:9411
-    kafka:
-      topic: 'new-member-register'
 
 
 # 서버 설정
@@ -41,3 +37,4 @@ encrypt:
     location: file:///home/ubuntu/nbbang/key/nbbang-config.jks
     password: config-access
     alias: nbbang-config-key
+

@@ -55,7 +55,7 @@ public class AccountController {
             msg = "서버 오류 입니다";
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, msg), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, msg), HttpStatus.OK);
     }
 
     @PostMapping("/new")
@@ -66,11 +66,11 @@ public class AccountController {
             String bankAccountEnc = accountService.encrypt(accountRequest.getBankAccount());
             accountRequest.encBankAccount(bankAccountEnc);
             memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
-            return new ResponseEntity<>(CommonResponse.create(true, "계좌 등록을 완료했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonResponse.response(true, "계좌 등록을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailEncryptException | NoSuchMemberException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "계좌 등록에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "계좌 등록에 실패했습니다"), HttpStatus.OK);
     }
 
     @PutMapping("/")
@@ -81,11 +81,11 @@ public class AccountController {
             String bankAccountEnc = accountService.encrypt(accountRequest.getBankAccount());
             accountRequest.encBankAccount(bankAccountEnc);
             memberService.updateAccount(memberId, AccountRequest.toEntity(accountRequest));
-            return new ResponseEntity<>(CommonResponse.create(true, "계좌 수정을 완료했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonResponse.response(true, "계좌 수정을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailEncryptException | NoSuchMemberException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "계좌 수정에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "계좌 수정에 실패했습니다"), HttpStatus.OK);
     }
 
     @DeleteMapping("/")
@@ -94,11 +94,11 @@ public class AccountController {
         String memberId = req.getHeader("X-Authorization-Id");
         try {
             memberService.deleteAccount(memberId);
-            return new ResponseEntity<>(CommonResponse.create(true, "계좌 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(CommonResponse.response(true, "계좌 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
         } catch (NoSuchMemberException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "계좌 삭제에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "계좌 삭제에 실패했습니다"), HttpStatus.OK);
     }
 
     @GetMapping("/billing")
@@ -108,13 +108,13 @@ public class AccountController {
         try {
             MemberDTO member = memberService.findMember(memberId);
             if(member.getBillingKey() != null) {
-                String biilingKey = accountService.decrypt(member.getBillingKey());
+                String biilingKey = member.getBillingKey();
                 return new ResponseEntity<>(CommonSuccessResponse.response(true, BillingKeyResponse.create(biilingKey), "빌링키 조회를 완료했습니다"), HttpStatus.OK);
             }
         } catch (NoSuchMemberException e){
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "빌링키 조회를 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "빌링키 조회를 실패했습니다"), HttpStatus.OK);
     }
 
     @PostMapping("/billing/new")
@@ -127,11 +127,11 @@ public class AccountController {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
             memberService.updateBillingKey(memberId, billingKeyEnc);
-            return new ResponseEntity<>(CommonResponse.create(true, "빌링키 등록을 완료했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonResponse.response(true, "빌링키 등록을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailImportServerException | FailIssueBillingKeyException | FailEncryptException | NoSuchMemberException e) {
             log.info("error: " + e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "빌링키 등록에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "빌링키 등록에 실패했습니다"), HttpStatus.OK);
     }
 
     @PutMapping("/billing")
@@ -148,11 +148,11 @@ public class AccountController {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
             memberService.updateBillingKey(memberId, billingKeyEnc);
-            return new ResponseEntity<>(CommonResponse.create(true, "빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, billingKeyEnc,"빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException | FailIssueBillingKeyException | FailEncryptException e) {
             log.info("error: " + e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "빌링키 수정에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "빌링키 수정에 실패했습니다"), HttpStatus.OK);
     }
 
     @DeleteMapping("/billing")
@@ -169,7 +169,7 @@ public class AccountController {
                 customerUid = accountService.decrypt(customerUidEnc);
                 importAPI.deleteBillingKey(accessToken, customerUid);
                 memberService.deleteBillingKey(memberId);
-                return new ResponseEntity<>(CommonResponse.create(true, "빌링키 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(CommonResponse.response(true, "빌링키 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
             } else {
                 msg = "billingKey가 존재하지 않습니다";
                 log.info(msg);
@@ -179,7 +179,7 @@ public class AccountController {
             log.info("error: " + e.getClass());
             msg = "빌링키 삭제에 실패했습니다";
         }
-        return new ResponseEntity<>(CommonResponse.create(false, msg), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, msg), HttpStatus.OK);
     }
 
     @GetMapping("/bank")

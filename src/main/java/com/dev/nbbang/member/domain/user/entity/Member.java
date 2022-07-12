@@ -55,7 +55,7 @@ public class Member {
     @Builder.Default        //NPE 해결
     private List<MemberOtt> memberOtt = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MemberCoupon> memberCouponList = new ArrayList<>();
 

@@ -9,6 +9,7 @@ import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.user.exception.NoSuchMemberException;
 import com.dev.nbbang.member.domain.user.service.MemberService;
+import com.dev.nbbang.member.global.exception.NbbangException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ class PointControllerTest {
          */
         // given
         String uri = "/point";
-        given(memberService.findMember(anyString())).willThrow(NoSuchMemberException.class);
+        given(memberService.findMember(anyString())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)
@@ -121,7 +122,7 @@ class PointControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.memberId").value("test Id"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.usePoint").value(500))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.point").value(500))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointType").value("INCREASE"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.pointDetail").value("포인트 적립 테스트"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("포인트 적립/사용에 성공했습니다."))
@@ -144,7 +145,7 @@ class PointControllerTest {
          */
         // given
         String uri = "/point";
-        given(pointService.updatePoint(anyString(), any())).willThrow(NoCreatedPointDetailsException.class);
+        given(pointService.updatePoint(anyString(), any())).willThrow(new NoCreatedPointDetailsException("포인트 적립 실패", NbbangException.NO_CREATE_POINT_DETAILS));
 
         // when
         MockHttpServletResponse response = mvc.perform(put(uri)
@@ -202,7 +203,7 @@ class PointControllerTest {
          */
         // given
         String uri = "/point/details";
-        given(pointService.findPointDetails(anyString(), anyLong(), anyInt())).willThrow(NoSuchMemberException.class);
+        given(pointService.findPointDetails(anyString(), anyLong(), anyInt())).willThrow(new NoSuchMemberException("조회 실패", NbbangException.NOT_FOUND_MEMBER));
 
         // when
         MockHttpServletResponse response = mvc.perform(get(uri)

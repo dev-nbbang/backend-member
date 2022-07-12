@@ -37,7 +37,7 @@ public class CouponController {
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "사용자의 쿠폰 리스트 정보를 불러오는데 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "사용자의 쿠폰 리스트 정보를 불러오는데 실패했습니다"), HttpStatus.OK);
     }
     //저장
     @PostMapping(value = "/new")
@@ -47,11 +47,11 @@ public class CouponController {
         boolean status = false;
         try {
             couponService.saveMemberCoupon(memberId, couponRequest.getCouponId());
-            return new ResponseEntity<>(CommonResponse.create(true, "쿠폰 저장했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonResponse.response(true, "쿠폰 저장했습니다"), HttpStatus.CREATED);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "쿠폰 저장에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "쿠폰 저장에 실패했습니다"), HttpStatus.OK);
     }
     //사용
     @PutMapping(value = "/{couponId}")
@@ -61,11 +61,11 @@ public class CouponController {
         boolean status = false;
         try {
             couponService.updateMemberCoupon(memberId, couponId);
-            return new ResponseEntity<>(CommonResponse.create(true, "쿠폰을 사용했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonResponse.response(true, "쿠폰을 사용했습니다"), HttpStatus.CREATED);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "쿠폰 사용에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "쿠폰 사용에 실패했습니다"), HttpStatus.OK);
     }
 
     //삭제
@@ -75,11 +75,11 @@ public class CouponController {
         String memberId = req.getHeader("X-Authorization-Id");
         try {
             couponService.deleteMemberCoupon(memberId, couponId);
-            return new ResponseEntity<>(CommonResponse.create(true, "쿠폰 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(CommonResponse.response(true, "쿠폰 삭제를 완료했습니다"), HttpStatus.NO_CONTENT);
         } catch (NoSuchCouponException e) {
             log.info(e.getMessage());
         }
-        return new ResponseEntity<>(CommonResponse.create(false, "쿠폰 삭제에 실패했습니다"), HttpStatus.OK);
+        return new ResponseEntity<>(CommonResponse.response(false, "쿠폰 삭제에 실패했습니다"), HttpStatus.OK);
     }
 
     //관리자 영역

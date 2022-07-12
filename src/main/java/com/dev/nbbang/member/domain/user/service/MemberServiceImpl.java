@@ -4,27 +4,37 @@ import com.dev.nbbang.member.domain.ott.dto.MemberOttDTO;
 import com.dev.nbbang.member.domain.ott.entity.MemberOtt;
 import com.dev.nbbang.member.domain.ott.exception.NoSuchOttException;
 
+import com.dev.nbbang.member.domain.user.api.entity.SocialType;
+import com.dev.nbbang.member.domain.user.api.service.KakaoOauth;
+import com.dev.nbbang.member.domain.user.api.service.SocialOauth;
+import com.dev.nbbang.member.domain.user.api.util.SocialTypeMatcher;
 import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.entity.Member;
 import com.dev.nbbang.member.domain.ott.entity.OttView;
 import com.dev.nbbang.member.domain.user.exception.*;
 import com.dev.nbbang.member.domain.user.repository.MemberRepository;
 import com.dev.nbbang.member.domain.ott.repository.OttViewRepository;
+import com.dev.nbbang.member.domain.user.util.NicknameValidation;
 import com.dev.nbbang.member.global.exception.NbbangException;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OttViewRepository ottViewRepository;
+    private final SocialTypeMatcher socialTypeMatcher;
     private final RedisUtil redisUtil;
+    private final String SOCIAL_TOKEN_PREFIX = "social-token:";
 
     /**
      * 회원 아이디를 이용해 가입된 회원 상세 내용을 찾는다.
@@ -54,6 +64,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // 회원 정보 업데이트 (Member_Ott 구분)
+
     /**
      * 회원 아이디를 이용해 가입된 회원을 찾은 뒤 새로운 회원 정보로 수정하고 관심 OTT 서비스도 수정한다.
      *
@@ -90,8 +101,15 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     public boolean duplicateNickname(String nickname) {
+        // 특수문자 및 공백 제외
+        if (NicknameValidation.valid(nickname))
+            throw new IllegalNicknameException("옳바르지 않은 닉네임입니다.", NbbangException.ILLEGAL_NICKNAME);
+
+
         Optional.ofNullable(memberRepository.findByNickname(nickname)).ifPresent(
-                exception -> {throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);}
+                exception -> {
+                    throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);
+                }
         );
 
         return true;
@@ -118,19 +136,45 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public void deleteMember(String memberId) {
-
         if (memberId.length() < 1)
             throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
-        // 레디스 토큰 삭제
-        if (!redisUtil.deleteData(memberId))
-            throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
 
-        // 소셜에서 회원 삭제 (카카오는 연동 해제)
 
-        // 다른 서비스에 이벤트 발행 후 관련 모든 데이터 지우기 (동일 서비스 cascade로 관련 테이블 모두 지우기)
+        // 소셜 연동 해제 (일단 카카오만)
+        if(memberId.startsWith("K-") || memberId.startsWith("G-")) {
+            SocialType socialType = SocialType.KAKAO;
+            if(memberId.startsWith("G-")) socialType = SocialType.GOOGLE;
+
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(socialType);
+
+            // 1. 소셜 타입 찾기
+//        if(memberId.startsWith("G-")) socialOauth = socialTypeMatcher.findSocialOauth(memberId, SocialType.GOOGLE);
+
+            // 2. 리프레시 토큰으로 엑세스 토큰 재발급
+            String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
+
+            // 3. 엑세스 토큰을 이용해 소셜 연동 해제 요청
+            Boolean unlink = socialOauth.unlinkSocial(memberId, accessToken);
+
+            if (!unlink) {
+                throw new FailDeleteMemberException("소셜 연동 해제에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+            }
+
+            // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제 (현재 일반 회원 삭제 안됌)
+            if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId)) {
+                throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+            }
+        }
+        // [TEST] 일반 회원의 경우는 그냥 JWT만 탈퇴하도록
+        else {
+            if (!redisUtil.deleteData(memberId)) {
+                throw new FailDeleteMemberException("테스트! 일반 회원 탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
+            }
+        }
+
+        // 5. 회원 서비스 데이터 삭제 진행
         memberRepository.deleteByMemberId(memberId);
-
     }
 
     /**
@@ -142,7 +186,19 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean logout(String memberId) {
         if (memberId.length() < 1) throw new FailLogoutMemberException("로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
-        // 존재하지 않는 회원까지 이중 체크?
+
+        // 카카오는 소셜 로그아웃 있음
+        if (memberId.startsWith("K-")) {
+            SocialOauth socialOauth = socialTypeMatcher.findSocialOauth(SocialType.KAKAO);
+
+            String accessToken = socialOauth.generateAccessToken(redisUtil.getData(SOCIAL_TOKEN_PREFIX + memberId));
+
+            Boolean logout = socialOauth.logout(memberId, accessToken);
+
+            if(!logout)
+                throw new FailLogoutMemberException("카카오 로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
+        }
+
         return redisUtil.deleteData(memberId);
     }
 
