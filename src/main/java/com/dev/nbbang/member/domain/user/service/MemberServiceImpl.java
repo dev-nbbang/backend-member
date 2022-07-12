@@ -18,6 +18,7 @@ import com.dev.nbbang.member.domain.user.util.NicknameValidation;
 import com.dev.nbbang.member.global.exception.NbbangException;
 import com.dev.nbbang.member.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final OttViewRepository ottViewRepository;
