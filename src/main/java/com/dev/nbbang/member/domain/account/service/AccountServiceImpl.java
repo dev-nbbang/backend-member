@@ -8,6 +8,7 @@ import com.dev.nbbang.member.global.exception.NbbangException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@RefreshScope
 public class AccountServiceImpl implements AccountService{
     private final AccountRepository accountRepository;
     @Value("${aes.key}")
