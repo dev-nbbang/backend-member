@@ -53,12 +53,14 @@ public class MemberController {
     @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 확인")
     public ResponseEntity<?> checkDuplicateNickname(@RequestParam("nickname") String nickname) {
         log.info(" >> [Nbbang Member Service] 닉네임 중복 확인확인");
-        boolean nicknameDup = memberService.duplicateNickname(nickname);
 
-        return ResponseEntity.ok(CommonSuccessResponse.response(true, nicknameDup, "사용 가능한 닉네임입니다."));
+        String message = "사용 가능한 닉네임입니다.";
+        boolean nicknameDup = memberService.duplicateNickname(nickname);
+        if(!nicknameDup) message = "이미 사용중인 닉네임입니다.";
+
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, NicknameValidResponse.create(nicknameDup), message));
 
     }
-
     @GetMapping(value = "/nickname/list")
     @Operation(summary = "닉네임 리스트 가져오기", description = "닉네임 리스트 가져오기")
     public ResponseEntity<?> searchNicknameList(@RequestParam("nickname") String nickname) {
