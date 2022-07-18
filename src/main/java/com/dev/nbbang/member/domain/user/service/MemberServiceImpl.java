@@ -105,14 +105,8 @@ public class MemberServiceImpl implements MemberService {
         if (NicknameValidation.valid(nickname))
             throw new IllegalNicknameException("옳바르지 않은 닉네임입니다.", NbbangException.ILLEGAL_NICKNAME);
 
-
-        Optional.ofNullable(memberRepository.findByNickname(nickname)).ifPresent(
-                exception -> {
-                    throw new DuplicateNicknameException("이미 사용중인 닉네임입니다.", NbbangException.DUPLICATE_NICKNAME);
-                }
-        );
-
-        return true;
+        // 닉네임 중복 확인
+        return Optional.ofNullable(memberRepository.findByNickname(nickname)).isPresent();
     }
 
     /**
