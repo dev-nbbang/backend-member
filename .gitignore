@@ -34,11 +34,10 @@ hs_err_pid*
 .idea
 .idea/*.xml
 *.iml
-.yml
 out
 gen
 build
 rebel.xml
 
-# properties
-*.properties
+# application.yml
+application.yml
