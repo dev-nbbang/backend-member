@@ -40,7 +40,7 @@ public class MemberController {
 
     @GetMapping(value = "/recommend")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
-    public ResponseEntity<?> findRecommendMember(@RequestParam("nickname")String nickname) {
+    public ResponseEntity<?> findRecommendMember(@RequestParam("nickname") String nickname) {
         log.info(">> [Nbbang Member Service] 닉네임으로 추천인 회원 조회하기");
         // 닉네임으로 회원 조회
         MemberDTO findMember = memberService.findMemberByNickname(nickname);
@@ -56,11 +56,12 @@ public class MemberController {
 
         String message = "사용 가능한 닉네임입니다.";
         boolean nicknameDup = memberService.duplicateNickname(nickname);
-        if(!nicknameDup) message = "이미 사용중인 닉네임입니다.";
+        if (nicknameDup) message = "이미 사용중인 닉네임입니다.";
 
         return ResponseEntity.ok(CommonSuccessResponse.response(true, NicknameValidResponse.create(nicknameDup), message));
 
     }
+
     @GetMapping(value = "/nickname/list")
     @Operation(summary = "닉네임 리스트 가져오기", description = "닉네임 리스트 가져오기")
     public ResponseEntity<?> searchNicknameList(@RequestParam("nickname") String nickname) {
@@ -181,7 +182,7 @@ public class MemberController {
         String memberId = memberDiscRequest.getPointObj().getMemberId();
         MemberDTO memberDTO = memberService.findMember(memberId);
         Long point = memberDiscRequest.getPointObj().getUsePoint();
-        if(memberDiscRequest.getCouponId() != null) {
+        if (memberDiscRequest.getCouponId() != null) {
             try {
                 couponService.updateMemberCoupon(memberId, memberDiscRequest.getCouponId());
             } catch (NoSuchCouponException | NoSuchMemberException | AlreadyUsedCouponException e) {
@@ -189,7 +190,7 @@ public class MemberController {
                 return ResponseEntity.ok(CommonStatusResponse.create(false));
             }
         }
-        if(point != null && memberDTO.getPoint() >= point) {
+        if (point != null && memberDTO.getPoint() >= point) {
             try {
                 pointService.updatePoint(memberId, MemberPointRequest.toDTO(memberDiscRequest.getPointObj()));
             } catch (NoSuchCouponException | NoSuchMemberException | NoCreatedPointDetailsException e) {
@@ -198,5 +199,19 @@ public class MemberController {
             }
         }
         return ResponseEntity.ok(CommonStatusResponse.create(true));
+    }
+
+    @GetMapping("/re-login")
+    public ResponseEntity<CommonSuccessResponse> relogin(HttpServletRequest servletRequest) {
+        log.info("[MemberController] 회원 아이디로 재로그인");
+
+        // 회원 아이디 파싱
+        String memberId = servletRequest.getHeader("X-Authorization-Id");
+
+        // 회원 아이디로 회원 조회
+        MemberDTO findMember = memberService.findMember(memberId);
+
+        // 로그인에 필요한 정보 리턴
+        return ResponseEntity.ok(CommonSuccessResponse.response(true, MemberLoginInfoResponse.create(findMember), "재로그인에 성공했습니다."));
     }
 }
