@@ -10,7 +10,7 @@ import com.dev.nbbang.member.domain.user.dto.MemberDTO;
 import com.dev.nbbang.member.domain.user.dto.request.*;
 import com.dev.nbbang.member.domain.user.dto.response.*;
 import com.dev.nbbang.member.domain.user.exception.*;
-import com.dev.nbbang.member.domain.user.service.MemberProducer;
+import com.dev.nbbang.member.domain.user.service.MemberLeaveProducer;
 import com.dev.nbbang.member.domain.user.service.MemberService;
 import com.dev.nbbang.member.global.dto.response.CommonStatusResponse;
 import com.dev.nbbang.member.global.dto.response.CommonSuccessResponse;
@@ -34,10 +34,10 @@ import java.util.*;
 @Tag(name = "Member", description = "Member API")
 public class MemberController {
     private final MemberService memberService;
-    private final MemberProducer memberProducer;
+//    private final MemberProducer memberProducer;
     private final PointService pointService;
     private final CouponService couponService;
-
+    private final MemberLeaveProducer memberLeaveProducer;
     @GetMapping(value = "/recommend")
     @Operation(summary = "닉네임으로 추천인 회원 조회하기", description = "닉네임으로 추천인 회원 조회하기")
     public ResponseEntity<?> findRecommendMember(@RequestParam("nickname") String nickname) {
@@ -158,7 +158,10 @@ public class MemberController {
         memberService.deleteMember(memberId);
 
         // 회원 탈퇴 로직 성공 시 회원 탈퇴 이벤트 발행
-        memberProducer.sendLeaveMemberMessage(MemberLeaveRequest.create(memberId));
+//        memberProducer.sendLeaveMemberMessage(MemberLeaveRequest.create(memberId));
+
+        // RabbitMQ (회원 탈퇴 메세지 전송)
+        memberLeaveProducer.sendLeaveMemberMessage(MemberLeaveRequest.create(memberId));
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
