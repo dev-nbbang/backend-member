@@ -1,3 +1,4 @@
+/*
 package com.dev.nbbang.member.global.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -51,5 +52,5 @@ public class KafkaConsumerConfig {
 
         return kafkaListenerContainerFactory;
     }
-
 }
+*/

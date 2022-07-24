@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +27,13 @@ public class MemberRegisterConsumer {
     private final MemberOttService memberOttService;
 
     @Transactional
-    public void receiverAdditionalInformation(String message) throws JsonProcessingException {
-        log.info("[MEMBER REGISTER QUEUE] ReceivedMessage : " + message);
+    @RabbitListener(queues = {MEMBER_REGISTER_QUEUE})
+    public void receiveAdditionalInformation(MemberAdditionalInformation additionalInformation) throws JsonProcessingException {
+        log.info("[MEMBER REGISTER QUEUE] ReceivedMessage : " + additionalInformation);
 
-
-        MemberAdditionalInformation additionalInformation = objectMapper.readValue(message, MemberAdditionalInformation.class);
+        log.error("additionalInformation : {}", additionalInformation.getMemberId());
+        log.error("additionalInformation : {}", additionalInformation.getRecommendMemberId());
+        log.error("additionalInformation : {}", additionalInformation.getOttId());
 
         // 추천인 아이디가 있는 경우 (Option)
         if (additionalInformation.getMemberId().length() > 0 && additionalInformation.getRecommendMemberId().length() > 0) {
@@ -59,7 +62,7 @@ public class MemberRegisterConsumer {
                 log.info("Exception Message : {}, 재처리 X", e.getMessage());
             }
             // 커스텀 예외 이외의 경우 재처리 시도
-            catch (Exception e)  {
+            catch (Exception e) {
                 log.error("Exception Message : {}, 재처리 필요", e.getMessage());
 
                 throw new IllegalStateException("관심 OTT 플랫폼 등록 실패 예외 발생 메세지 재처리 필요");
