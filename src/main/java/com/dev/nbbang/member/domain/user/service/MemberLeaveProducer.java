@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class MemberLeaveProducer {
     private final RabbitTemplate rabbitTemplate;
 
-    private final String NBBANG_EXCHANGE = "nbbang.exchange";
-    private final String MEMBER_LEAVE_ROUTING_KEY = "member.leave.route";
+    private final String MEMBER_LEAVE_EXCHANAGE = "member.leave.exchange";
+    private final String MEMBER_LEAVE_ROUTING_KEY = "member.leave.#";
 
     public void sendLeaveMemberMessage(MemberLeaveRequest request) {
         // 회원 탈퇴 이벤트 전송 시작
@@ -23,6 +23,6 @@ public class MemberLeaveProducer {
         log.debug("[MEMBER LEAVE QUEUE] MESSAGE : {}", request.toString());
 
         // 회원 탈퇴 이벤트 카프카 전송
-        rabbitTemplate.convertAndSend(NBBANG_EXCHANGE, MEMBER_LEAVE_ROUTING_KEY, request);
+        rabbitTemplate.convertAndSend(MEMBER_LEAVE_EXCHANAGE, MEMBER_LEAVE_ROUTING_KEY, request);
     }
 }
