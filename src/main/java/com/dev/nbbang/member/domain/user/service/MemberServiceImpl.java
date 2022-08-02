@@ -156,7 +156,7 @@ public class MemberServiceImpl implements MemberService {
             }
 
             // 4. 레디스 JWT 토큰 삭제 및 소셜 토큰 삭제 (현재 일반 회원 삭제 안됌)
-            if (!redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId)) {
+            if (!redisUtil.deleteData(memberId+":access") || !redisUtil.deleteData(memberId) || !redisUtil.deleteData(SOCIAL_TOKEN_PREFIX + memberId)) {
                 throw new FailDeleteMemberException("회원탈퇴에 실패했습니다.", NbbangException.FAIL_TO_DELETE_MEMBER);
             }
         }
@@ -192,7 +192,7 @@ public class MemberServiceImpl implements MemberService {
             if(!logout)
                 throw new FailLogoutMemberException("카카오 로그아웃에 실패했습니다.", NbbangException.FAIL_TO_LOGOUT);
         }
-
+        redisUtil.deleteData(memberId+":access");
         return redisUtil.deleteData(memberId);
     }
 
