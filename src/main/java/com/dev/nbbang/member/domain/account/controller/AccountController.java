@@ -148,7 +148,7 @@ public class AccountController {
             billingKey = importAPI.getBillingKey(accessToken, card, memberId);
             billingKeyEnc = accountService.encrypt(billingKey);
             memberService.updateBillingKey(memberId, billingKeyEnc);
-            return new ResponseEntity<>(CommonSuccessResponse.response(true, billingKeyEnc,"빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
+            return new ResponseEntity<>(CommonSuccessResponse.response(true, BillingKeyResponse.create(billingKeyEnc),"빌링키 수정을 완료했습니다"), HttpStatus.CREATED);
         } catch (FailImportServerException | NoSuchMemberException | FailDecryptException | FailDeleteBillingKeyException | FailIssueBillingKeyException | FailEncryptException e) {
             log.info("error: " + e.getMessage());
         }
