@@ -34,7 +34,7 @@ public class AccountController {
     private final MemberService memberService;
     private final AccountService accountService;
 
-    @GetMapping("/")
+    @GetMapping
     @Operation(description = "계좌 조회")
     public ResponseEntity<?> accountCheck(HttpServletRequest req) {
         String memberId = req.getHeader("X-Authorization-Id");
@@ -73,7 +73,7 @@ public class AccountController {
         return new ResponseEntity<>(CommonResponse.response(false, "계좌 등록에 실패했습니다"), HttpStatus.OK);
     }
 
-    @PutMapping("/")
+    @PutMapping
     @Operation(description = "계좌 수정")
     public ResponseEntity<?> accountUpdate(@RequestBody AccountRequest accountRequest, HttpServletRequest req) {
         String memberId = req.getHeader("X-Authorization-Id");
@@ -88,7 +88,7 @@ public class AccountController {
         return new ResponseEntity<>(CommonResponse.response(false, "계좌 수정에 실패했습니다"), HttpStatus.OK);
     }
 
-    @DeleteMapping("/")
+    @DeleteMapping
     @Operation(description = "계좌 삭제")
     public ResponseEntity<?> accountDelete(HttpServletRequest req) {
         String memberId = req.getHeader("X-Authorization-Id");
