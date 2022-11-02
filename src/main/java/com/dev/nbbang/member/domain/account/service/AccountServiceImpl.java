@@ -1,5 +1,6 @@
 package com.dev.nbbang.member.domain.account.service;
 
+import com.dev.nbbang.member.domain.account.dto.response.BankListResponse;
 import com.dev.nbbang.member.domain.account.entity.Bank;
 import com.dev.nbbang.member.domain.account.exception.FailDecryptException;
 import com.dev.nbbang.member.domain.account.exception.FailEncryptException;
@@ -15,6 +16,7 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +32,10 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public List<Bank> findAll() {
-        return accountRepository.findAll();
+    public List<BankListResponse> findAll() {
+        List<Bank> findBanks = accountRepository.findAll();
+
+        return findBanks.stream().map(BankListResponse::create).collect(Collectors.toList());
     }
 
     @Override

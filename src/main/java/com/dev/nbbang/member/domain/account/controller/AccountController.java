@@ -184,9 +184,8 @@ public class AccountController {
 
     @GetMapping("/bank")
     @Operation(description = "은행 조회")
-    public ResponseEntity<?> BankCheck(HttpServletRequest req) {
-        List<Bank> bankList = accountService.findAll();
-        return new ResponseEntity<>(CommonSuccessResponse.response(true, BankListResponse.create(bankList), "은행 조회에 성공했습니다"), HttpStatus.OK);
-    }
+    public ResponseEntity<CommonSuccessResponse> BankCheck(HttpServletRequest req) {
 
+        return new ResponseEntity<>(CommonSuccessResponse.response(true, accountService.findAll(), "은행 조회에 성공했습니다"), HttpStatus.OK);
+    }
 }

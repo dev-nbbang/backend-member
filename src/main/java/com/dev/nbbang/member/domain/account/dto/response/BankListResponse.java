@@ -13,9 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class BankListResponse {
-    private List<Bank> bankList;
+    private int bankId;
+    private String bankName;
+    private String bankImg;
 
-    public static BankListResponse create(List<Bank> bankList) {
-        return BankListResponse.builder().bankList(bankList).build();
+    public static BankListResponse create(Bank bank) {
+        return new BankListResponse(bank.getBankId(), bank.getBankName(), bank.getBankImg());
     }
 }

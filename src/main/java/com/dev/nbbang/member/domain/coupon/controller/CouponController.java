@@ -27,7 +27,7 @@ public class CouponController {
     private final CouponService couponService;
     //사용자 영역
     //조회
-    @GetMapping(value = "/")
+    @GetMapping
     @Operation(description = "사용자의 쿠폰리스트 조회")
     public ResponseEntity<?> couponList(HttpServletRequest req) {
         String memberId = req.getHeader("X-Authorization-Id");
